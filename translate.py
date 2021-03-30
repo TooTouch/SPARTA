@@ -8,7 +8,7 @@ import time
 
 import argparse 
 
-def extract_data(name: str):
+def extract_data(name: str, datadir: str):
     """
     Data extraction from a jsonl file
 
@@ -21,7 +21,8 @@ def extract_data(name: str):
     data_lst: data list
     """
     data_lst = []
-    with open(f'data/{name}.jsonl') as f:
+    filepath = os.path.join(datadir, f'{name}.jsonl')
+    with open(filepath) as f:
         for l in tqdm(f, desc=name.upper()):
             data_lst.append(json.loads(l))
     return data_lst
@@ -77,21 +78,26 @@ def insert_ko_question(data: list, name: str, savedir: str):
    
 if __name__=='__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('--savedir',type=str,default='./data',help='save directory')
+    parser.add_argument('--datadir',type=str,default='data', )
+    parser.add_argument('--savedir',type=str,default='./ko_data',help='save directory')
     parser.add_argument('--extract',action='store_true',help='extract question')
-    parser.add_argument('--ko_insert',action='store_true',help='replace Korean question with English question ')
+    parser.add_argument('--insert',action='store_true',help='replace Korean question with English question ')
     args = parser.parse_args()
-
+    
+    # make directory
+    if not os.path.isdir(args.savedir):
+        os.mkdir(args.savedir)
     
     for f in ['train','dev','test']:
-        data = extract_data(name=f)
+        print('[WikiSQL DATA]')
+        data = extract_data(name=f, datadir=args.datadir)
         
         if args.extract:
             print('[EXTRACT QUESTION]')
             extract_question(name=f, data=data, savedir=args.savedir)
 
-        if args.ko_insert:
+        if args.insert:
             print('[INSERT KOREAN QUESTION]')
             insert_ko_question(name=f, data=data, savedir=args.savedir)
 
-            
+        print('Done.')
