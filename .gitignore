@@ -129,6 +129,8 @@ dmypy.json
 .pyre/
 
 # data
+data/
+ko_data/
 model/
 viz/
 wandb/
