@@ -129,8 +129,7 @@ dmypy.json
 .pyre/
 
 # data
-data/wikisql/
-data/spider/
+data/
 model/
 viz/
 wandb/
