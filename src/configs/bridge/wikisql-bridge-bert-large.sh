@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
-data_dir="data/wikisql1.1/"
-db_dir="data/wikisql1.1/"
+data_dir="data/ko_wikisql1.1/"
+db_dir="data/ko_wikisql1.1/"
 dataset_name="wikisql"
 model="bridge"
 question_split="True"
@@ -32,7 +32,7 @@ program_vocab_min_freq=0
 max_in_seq_len=512
 max_out_seq_len=60
 
-num_steps=30000
+num_steps=15000
 curriculum_interval=0
 num_peek_steps=400
 num_accumulation_steps=3
@@ -55,7 +55,7 @@ random_field_order="False"
 data_augmentation_factor=1
 augment_with_wikisql="False"
 num_values_per_field=0
-pretrained_transformer="bert-base-uncased"
+pretrained_transformer="bert-base-multilingual-uncased"
 fix_pretrained_transformer_parameters="False"
 bert_finetune_rate=0.00005
 learning_rate=0.0003
