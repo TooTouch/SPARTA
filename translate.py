@@ -72,7 +72,11 @@ def insert_ko_question(data: list, name: str, savedir: str):
         data[i]['question'] = ko_question[i]
 
     # save Korean data
-    json.dump(data, open(filepath,'w'))
+    with open(filepath, 'w', encoding='utf-8') as f:
+        for line in data:
+            json_record = json.dumps(line, ensure_ascii=False)
+            f.write(json_record + '\n')
+        print('Write {} records to {}'.format(len(data), filepath))
 
     
    
@@ -100,4 +104,4 @@ if __name__=='__main__':
             print('[INSERT KOREAN QUESTION]')
             insert_ko_question(name=f, data=data, savedir=args.savedir)
 
-        print('Done.')
+        print('Done.\n')
