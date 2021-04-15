@@ -19,6 +19,12 @@ from torch.nn.utils.rnn import pad_packed_sequence as unpack
 from transformers import BertModel, RobertaModel
 import src.common.ops as ops
 
+from src.trans_checker.args import args
+if args.pretrained_transformer.endswith('kobert'):
+    from src.utils.trans import kobert_utils as bu
+elif args.pretrained_transformer.startswith('bert'):
+    from src.utils.trans import bert_utils as bu
+
 
 class Embedding(nn.Module):
 
@@ -49,6 +55,7 @@ class TransformerHiddens(nn.Module):
         super().__init__()
         if model.startswith('bert'):
             self.trans_parameters = BertModel.from_pretrained(model)
+            # self.trans_parameters.resize_token_embeddings(len(bu.tokenizer))
         elif model.startswith('roberta'):
             self.trans_parameters = RobertaModel.from_pretrained(model)
         elif model == 'table-bert':
@@ -56,6 +63,8 @@ class TransformerHiddens(nn.Module):
                 os.path.dirname(os.path.dirname(os.path.realpath(__file__))),
                 'utils/trans/table-bert-checkpoint'
             ))
+        elif model.endswith('kobert'):
+            self.trans_parameters = BertModel.from_pretrained(model)
         else:
             return NotImplementedError
         self.model = model

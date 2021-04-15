@@ -226,6 +226,9 @@ def get_trans_utils(args):
     if args.pretrained_transformer.startswith('bert-') and args.pretrained_transformer.endswith('-uncased'):
         import src.utils.trans.bert_utils as bu
         return bu
+    elif args.pretrained_transformer.endswith('kobert'):
+        import src.utils.trans.kobert_utils as ku
+        return ku
     elif args.pretrained_transformer.startswith('bert-') and args.pretrained_transformer.endswith('-cased'):
         import src.utils.trans.bert_cased_utils as bcu
         return bcu
@@ -234,6 +237,7 @@ def get_trans_utils(args):
         return ru
     elif args.pretrained_transformer == 'null':
         return None
+    
     else:
         raise NotImplementedError
 

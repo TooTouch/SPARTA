@@ -1,12 +1,58 @@
 import os
-import sys
-import urllib.request
-
+import utils
 import json
 from tqdm import tqdm
-import time
+import pandas as pd
+import fuzzy_string_match
+from itertools import chain
 
 import argparse 
+
+def upper_transform(sentence: str, word: str):
+    sentence = sentence.replace(word, f'[\{word.upper()}\]')
+    return sentence
+
+def search_table(table_list: list, table_id: str):
+    for table in table_list:
+        if table['id'] == table_id:
+            return table
+
+def upper_transform_question(question: str, table_list, table_id):
+    """
+    Transform part of the question into upper character to enhance the quality of translation
+
+    Argument
+    --------
+    question: str, question for database
+    table_list: list, list of dictionary of tables
+    table_id: str, id for target table
+    """
+    question = question.lower()
+    target_table = search_table(table_list, table_id)
+
+    header = target_table['header']
+    rows = list(chain(*target_table['rows']))
+    rows.extend(header)
+
+    # find link btw question and values
+    matches = fuzzy_string_match.get_matched_entries(question, rows)
+    # if match exists, transform the matches to UPPER
+    if matches != None:
+        matches = [m[0].lower() for m in matches]
+
+        for match in matches:
+            if match in question:
+                question = upper_transform(question, match)
+        return question
+    else:
+        return question  
+
+def upper_transform_bulk(questions, table_list, table_ids):
+    upper_questions = []
+    for question, table_id in tqdm(zip(questions, table_ids), desc='Converting questions to upper letter', total=len(questions)):
+        upper_q = upper_transform_question(question, table_list, table_id)
+        upper_questions.append(upper_q)
+    return upper_questions
 
 def extract_data(name: str, datadir: str):
     """
@@ -38,14 +84,39 @@ def extract_question(name: str, data: list, savedir: str):
     savedir: str, directory to save file
     """
     # define path to save file
-    filepath = os.path.join(args.savedir,f'{name}_question.xlsx')
+    filepath = os.path.join(savedir,f'{name}_question.xlsx')
 
     # remove '\xa0'
-    question = [" ".join(data['question'].split()) for data in train_data]
+    questions = [" ".join(d['question'].split()) for d in data]
+    table_ids =[d['table_id'] for d in data]
+    tables = extract_data(f'{name}.tables', './data')
+
+    extracted_q = upper_transform_bulk(questions, tables, table_ids)
 
     # save question dataframe 
-    question_df = pd.DataFrame({'question':question})
+    question_df = pd.DataFrame({'question':extracted_q})
     question_df.to_excel(filepath,index=False)
+
+def cleanse_lines(korean_dir: str):
+    """
+    Cleanse korean file lines
+
+    Argument
+    ---
+    korean_dir: str, directory of korean txt file which has been translated with Google Translate
+    """
+    file = open(korean_dir, 'r')
+    lines = file.readlines()
+
+    lines = [line.replace('[\\', '') for line in lines]
+    lines = [line.replace('\\]', '') for line in lines]
+    lines = [line.replace('\n', '').strip()  for line in lines]
+
+    lines = [' '.join(line.split()) for line in lines]
+    lines = [line.title() for line in lines]
+
+    return lines
+
 
 def insert_ko_question(data: list, name: str, savedir: str):
     """
@@ -58,14 +129,15 @@ def insert_ko_question(data: list, name: str, savedir: str):
     savedir: str, directory to save file
     """
     # define path to save file
-    ko_filepath = os.path.join(args.savedir,f'ko_{name}_question.txt')
-    filepath = os.path.join(args.savedir,f'ko_{name}.jsonl')
+    ko_filepath = os.path.join(savedir,f'ko_{name}_question.txt')
+    filepath = os.path.join(savedir,f'ko_{name}.jsonl')
 
     assert os.path.isfile(ko_filepath), f'ko_{name}_question.txt does not exist.'
 
     # read Korean questions
-    with open(ko_filepath,'r') as f:
-        ko_question = [d.replace('\n','') for d in f.readlines()]
+    # with open(ko_filepath,'r') as f:
+    #     ko_question = [d.replace('\n','') for d in f.readlines()]
+    ko_question = cleanse_lines(ko_filepath)
     
     # replace Korean questions with English questions
     for i in range(len(data)):
@@ -92,7 +164,7 @@ if __name__=='__main__':
     if not os.path.isdir(args.savedir):
         os.mkdir(args.savedir)
     
-    for f in ['train','dev','test']:
+    for f in ['train', 'dev', 'test']:
         print('[WikiSQL DATA]')
         data = extract_data(name=f, datadir=args.datadir)
         

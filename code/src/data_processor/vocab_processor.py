@@ -80,6 +80,14 @@ def build_vocab(args, dataset, schema_graphs):
         for v in tu.tokenizer.added_tokens_encoder:
             text_hist[v] = tu.tokenizer.convert_tokens_to_ids(v)
         schema_lexical_vocab = None
+        
+    elif args.pretrained_transformer.endswith('kobert'):
+        text_hist = dict()
+        for v in tu.tokenizer.vocab:
+            text_hist[v] = tu.tokenizer.vocab[v]
+        for v in tu.tokenizer.added_tokens_encoder:
+            text_hist[v] = tu.tokenizer.convert_tokens_to_ids(v)
+        schema_lexical_vocab = None
     elif args.pretrained_transformer.startswith('roberta'):
         text_hist = tu.tokenizer.encoder
         schema_lexical_vocab = None

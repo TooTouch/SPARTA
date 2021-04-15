@@ -159,6 +159,8 @@ def get_tokenizer_tag(args):
         return 'table-bert.'
     elif args.pretrained_transformer == 'null':
         return 'revtok.'
+    elif args.pretrained_transformer.endswith('kobert'):
+        return 'kobert.'
     else:
         raise NotImplementedError
 

@@ -287,13 +287,13 @@ def load_vocabs_seq2seq(args):
     }
     return vocabs
 
-
 def load_vocabs_seq2seq_ptr(args):
     if args.pretrained_transformer:
         tu = utils.get_trans_utils(args)
-        text_vocab = Vocabulary(tag='text', func_token_index=None, tu=tu)
-        for v in tu.tokenizer.vocab:
+        text_vocab = Vocabulary(tag='text', func_token_index=None, tu=tu)  
+        for v in tu.tokenizer.get_vocab():
             text_vocab.index_token(v, in_vocab=True, check_for_seen_vocab=True)
+
     else:
         text_vocab_path = get_vocab_path(args, 'nl')
         text_vocab = load_vocab(text_vocab_path, args.text_vocab_min_freq, tu=utils.get_trans_utils(args))

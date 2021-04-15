@@ -25,7 +25,11 @@ from src.data_processor.processor_utils import get_table_aware_transformer_encod
 from src.data_processor.schema_loader import load_schema_graphs
 import src.data_processor.tokenizers as tok
 from src.trans_checker.args import args
-from src.utils.trans import bert_utils as bu
+if args.pretrained_transformer.endswith('kobert'):
+    from src.utils.trans import kobert_utils as bu
+elif args.pretrained_transformer.startswith('bert'):
+    from src.utils.trans import bert_utils as bu
+    
 import src.utils.utils as utils
 
 torch.cuda.set_device('cuda:{}'.format(args.gpu))

@@ -44,8 +44,11 @@ class Bridge(PointerGenerator):
         # Encoder operations
         # => [batch_size, input_seq_len]
         inputs, input_masks = encoder_ptr_input_ids
+        # print(inputs)
+
         if self.pretrained_transformer:
             segment_ids, position_ids = self.get_segment_and_position_ids(inputs)
+            
             inputs_embedded, _ = self.encoder_embeddings(
                 inputs, input_masks, segments=segment_ids, position_ids=position_ids)
         else:
@@ -57,6 +60,7 @@ class Bridge(PointerGenerator):
                          schema_masks,
                          feature_ids,
                          transformer_output_value_masks)
+
         # Decoder operations
         # => [batch_size, target_seq_len]
         if self.training:
@@ -160,15 +164,19 @@ class SchemaEncoder(nn.Module):
         field_type_embeddings = self.field_type_embeddings(feature_ids[2][0]) * field_masks
         if self.use_graph_encoding:
             schema_hiddens = self.feature_fusion_layer(input_hiddens, field_type_embeddings)
+
         else:
             primary_key_embeddings = self.primary_key_embeddings(feature_ids[0][0]) * field_masks
             foreign_key_embeddings = self.foreign_key_embeddings(feature_ids[1][0]) * field_masks
-
+            # print(f'input hiddens: {input_hiddens.shape}')
+            # print(f'primary_key_embedding:{primary_key_embeddings.shape}')
+            # print(f'foreign_key_embedding:{foreign_key_embeddings.shape}')
+            # print(f'field type embedding:{field_type_embeddings.shape}')
             schema_hiddens = self.feature_fusion_layer(torch.cat([input_hiddens,
                                                                   primary_key_embeddings,
                                                                   foreign_key_embeddings,
                                                                   field_type_embeddings], dim=2))
-           
+
             # schema_hiddens = self.feature_fusion_layer(input_hiddens,
             #                                            primary_key_embeddings,
             #                                            foreign_key_embeddings,
@@ -321,6 +329,8 @@ class BridgeDecoder(RNNDecoder):
             p_pointer - [batch_size, seq_len(=1), 1]
             attn_weights - [batch_size, num_head, seq_len(=1), encoder_seq_len]
         """
+        # print(f'encoder_hiddens:{encoder_hiddens.shape}')
+        # print(f'encoder_ptr_value_ids:{encoder_ptr_value_ids.shape}')
         assert (encoder_hiddens.size(1) == encoder_ptr_value_ids.size(1))
         batch_size = len(input_embedded)
 

@@ -8,10 +8,16 @@
 """
 
 from transformers import BertTokenizer
+from kobert_transformers import get_tokenizer
 
+tokenizer = BertTokenizer.from_pretrained('monologg/kobert')
+print(f'Used tokenizer {tokenizer}')
+print('Korean Tokenizer')
 
-tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
 bt = tokenizer
+
+for index, value in enumerate(range(50, 66)):
+    bt.vocab[f'[unused{value}]']=8002+index
 
 pad_token = tokenizer.pad_token
 cls_token = tokenizer.cls_token

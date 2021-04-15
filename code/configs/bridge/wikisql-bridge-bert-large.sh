@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
-data_dir="data/ko_wikisql1.1/"
-db_dir="data/ko_wikisql1.1/"
+data_dir="data/multi_wikisql1.1/"
+db_dir="data/multi_wikisql1.1/"
 dataset_name="wikisql"
 model="bridge"
 question_split="True"
@@ -55,6 +55,8 @@ random_field_order="False"
 data_augmentation_factor=1
 augment_with_wikisql="False"
 num_values_per_field=0
+# pretrained_transformer="monologg/kobert"
+# pretrained_transformer='bert-base-uncased'
 pretrained_transformer="bert-base-multilingual-uncased"
 fix_pretrained_transformer_parameters="False"
 bert_finetune_rate=0.00005
