@@ -22,6 +22,20 @@ python translate.py --extract --datadir ./data --savedir ./ko_data
 python translate.py --insert --datadir ./data --savedir ./ko_data
 ```
 
+# Model
+- [BRIDGE](https://github.com/salesforce/TabularSemanticParsing): Use the command from this link for reproduction
+
+> Performance
+
+| BERT                   | Top-1 EM | TOP-3 EM | TOP-10 EM | TOP-1 EXE | TOP-3 EXE | TOP-10 EXE |
+| ---------------------- | -------- | -------- | --------- | --------- | --------- | ---------- |
+| **Multilingual Cased** | 0.378    | 0.503    | 0.612     | 0.453     | 0.578     | 0.676      |
+| Multilingual Uncased   | 0.02     |          |           |           |           |            |
+| Base Uncased           | 0        |          |           |           |           |            |
+
+
+
+
 # Reference
 
 [1] Victor Zhong, Caiming Xiong, and Richard Socher. 2017. Seq2SQL: Generating Structured Queries from Natural Language using Reinforcement Learning.
