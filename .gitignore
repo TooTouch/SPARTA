@@ -134,3 +134,4 @@ ko_data/
 model/
 viz/
 wandb/
+sqlova_custom/corenlp/
