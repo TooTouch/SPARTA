@@ -5,8 +5,9 @@ import os
 import json
 from copy import deepcopy
 import argparse
+from tqdm.auto import tqdm
 
-def replace_value_with_h_wv(data: list, tables: dict):
+def replace_value_with_h_wv(data: list, tables: dict, header: bool = True):
     """
     Replace header and where-values in question into token value
 
@@ -26,14 +27,19 @@ def replace_value_with_h_wv(data: list, tables: dict):
     for idx, d in enumerate(data):
         # where value
         wv_in_q_lst = []
+        question = d['question']
         for i, c in enumerate(d['sql']['conds']):
             wv = str(c[2]) # where value
 
             # find start index
-            start_idx = d['question'].lower().find(wv.lower())
+            start_idx = question.lower().find(wv.lower())
+
+            # where value is not in question
+            if start_idx==-1:
+                continue 
 
             # wv_in_q is where-value in question
-            wv_in_q = d['question'][start_idx:start_idx+len(wv)]
+            wv_in_q = question[start_idx:start_idx+len(wv)]
             
             # replace where value in question with [V{idx}]
             number_dict = {
@@ -42,15 +48,17 @@ def replace_value_with_h_wv(data: list, tables: dict):
                 2: '이',
                 3: '삼'
             } 
-            data[idx]['question'] = data[idx]['question'][:start_idx] + f'[값{number_dict[i]}]' + data[idx]['question'][start_idx+len(wv):]
-        
+            question = question[:start_idx] + f'[값{number_dict[i]}]' + question[start_idx+len(wv):]
             wv_in_q_lst.append(wv_in_q)
+
+
+        data[idx]['question'] = question
         
         total_wv_in_q_lst.append(wv_in_q_lst)
-            
+        
         # header
         h = tables[d['table_id']]['header'][d['sql']['sel']].lower()
-        if h in d['question'].lower():
+        if (h in d['question'].lower()) and (header):
             # find start index 
             start_idx = d['question'].lower().find(h.lower())
             
@@ -64,8 +72,10 @@ def replace_value_with_h_wv(data: list, tables: dict):
         else:
             h_in_q_lst.append(None)
 
+    
+    
     return data, total_wv_in_q_lst, h_in_q_lst
-
+    
 
 def extract_question(name: str, data: list, savedir: str): 
     """
@@ -88,7 +98,7 @@ def extract_question(name: str, data: list, savedir: str):
     question_df.to_excel(filepath,index=False)
 
 
-def save_token_question_and_info(name: str, datadir: str, savedir: str):
+def save_token_question_and_info(name: str, datadir: str, savedir: str, header: bool = True):
     """
     Save question with token and information
 
@@ -103,7 +113,7 @@ def save_token_question_and_info(name: str, datadir: str, savedir: str):
     # load data
     data, tables = load_wikisql_data(path_wikisql=datadir, mode=name, no_tok=True, no_hs_tok=True)
     # transform
-    data_with_token, total_wv_in_q_lst, h_in_q_lst = replace_value_with_h_wv(deepcopy(data), tables)
+    data_with_token, total_wv_in_q_lst, h_in_q_lst = replace_value_with_h_wv(data=deepcopy(data), tables=tables, header=header)
     # save
     extract_question(name=name, data=data_with_token, savedir=savedir)
     
@@ -115,7 +125,7 @@ def save_token_question_and_info(name: str, datadir: str, savedir: str):
 
 
 
-def insert_replace_h_wv_with_value(name: str, datadir:str, savedir: str):
+def insert_replace_h_wv_with_value(name: str, datadir:str, savedir: str, header: bool = True):
     """
     Insert Korean questions in data
 
@@ -144,7 +154,7 @@ def insert_replace_h_wv_with_value(name: str, datadir:str, savedir: str):
 
     # replace token with values
     for idx, d in enumerate(ko_question):
-        if '[이름]' in d:
+        if ('[이름]' in d) and (header):
             ko_question[idx] = ko_question[idx].replace('[이름]', token_info[name]['h'][idx])
 
         if token_info[name]['wv'][idx] != []:
@@ -175,6 +185,7 @@ if __name__=='__main__':
     parser.add_argument('--replace', type=str, choices=['value','token'], help='value: replace value with token, token: replace token with value')
     parser.add_argument('--datadir', type=str, default='./data/raw', help='wikisql data directory')
     parser.add_argument('--savedir', type=str, default='./data/ko_token', help='data directory to save file')
+    parser.add_argument('--header', action='store_true', help='include header token')
     args = parser.parse_args()
 
     if not os.path.isdir(args.savedir):
@@ -184,9 +195,9 @@ if __name__=='__main__':
 
     if args.replace == 'value':
         for name in dataset_names:
-            save_token_question_and_info(name=name, datadir=args.datadir, savedir=args.savedir)
+            save_token_question_and_info(name=name, datadir=args.datadir, savedir=args.savedir, header=args.header)
 
     elif args.replace == 'token':
         for name in dataset_names:
-            insert_replace_h_wv_with_value(name=name, datadir=args.datadir, savedir=args.savedir)
+            insert_replace_h_wv_with_value(name=name, datadir=args.datadir, savedir=args.savedir, header=args.header)
 
