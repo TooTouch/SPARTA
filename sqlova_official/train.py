@@ -8,16 +8,19 @@
 import os, sys, argparse, re, json
 
 from matplotlib.pylab import *
+
+
 import torch.nn as nn
 import torch
 import torch.nn.functional as F
-import random as python_random
 # import torchvision.datasets as dsets
 
 from sqlova.utils.utils_wikisql import *
 from sqlova.utils.utils import load_jsonl
 
 from sqlnet.dbengine import DBEngine
+
+from torch.utils.tensorboard import SummaryWriter
 
 # BERT
 # import bert.tokenization as tokenization
@@ -30,7 +33,10 @@ import warnings
 warnings.filterwarnings(action='ignore')
 
 
+
 def construct_hyper_param(parser, notebook=False):
+    parser.add_argument('--datadir', default='./data/ko_token/', type=str, help='data directory')
+    parser.add_argument('--logdir', default='./logs/ko_token/', type=str, help='log directory')
     parser.add_argument("--do_train", default=False, action='store_true')
     parser.add_argument('--do_infer', default=False, action='store_true')
     parser.add_argument('--infer_loop', default=False, action='store_true')
@@ -51,9 +57,11 @@ def construct_hyper_param(parser, notebook=False):
                         help="Type of model.")
 
     # 1.2 BERT Parameters
-    parser.add_argument("--vocab_file",
-                        default='vocab.txt', type=str,
-                        help="The vocabulary file that the BERT model was trained on.")
+    parser.add_argument("--bert_name", 
+                        type=str, 
+                        default='bert-base-uncased', 
+                        choices=['bert-base-multilingual-cased','bert-base-uncased'], 
+                        help='bert pretrained model name')
     parser.add_argument("--max_seq_length",
                         default=222, type=int,  # Set based on maximum length of input tokens.
                         help="The maximum total input sequence length after WordPiece tokenization. Sequences "
@@ -66,9 +74,6 @@ def construct_hyper_param(parser, notebook=False):
                         type=int,
                         default=42,
                         help="random seed for initialization")
-    parser.add_argument('--no_pretraining', action='store_true', help='Use BERT pretrained model')
-    parser.add_argument("--bert_type_abb", default='uS', type=str,
-                        help="Type of BERT model to load. e.g.) uS, uL, cS, cL, and mcS")
 
     # 1.3 Seq-to-SQL module parameters
     parser.add_argument('--lS', default=2, type=int, help="The number of LSTM layers.")
@@ -85,33 +90,10 @@ def construct_hyper_param(parser, notebook=False):
                         type=int,
                         default=4,
                         help="The size of beam for smart decoding")
-
     # gpu
     parser.add_argument('--gpu', type=int, default=0, help='gpu index')
 
     args = parser.parse_args(args=[]) if notebook else parser.parse_args()
-
-    map_bert_type_abb = {'uS': 'uncased_L-12_H-768_A-12',
-                         'uL': 'uncased_L-24_H-1024_A-16',
-                         'cS': 'cased_L-12_H-768_A-12',
-                         'cL': 'cased_L-24_H-1024_A-16',
-                         'mcS': 'multi_cased_L-12_H-768_A-12'}
-    args.bert_type = map_bert_type_abb[args.bert_type_abb]
-    print(f"BERT-type: {args.bert_type}")
-
-    # Decide whether to use lower_case.
-    if args.bert_type_abb == 'cS' or args.bert_type_abb == 'cL' or args.bert_type_abb == 'mcS':
-        args.do_lower_case = False
-    else:
-        args.do_lower_case = True
-
-    # Seeds for random number generation
-    seed(args.seed)
-    python_random.seed(args.seed)
-    np.random.seed(args.seed)
-    torch.manual_seed(args.seed)
-    if torch.cuda.is_available():
-        torch.cuda.manual_seed_all(args.seed)
 
     # args.toy_model = not torch.cuda.is_available()
     args.toy_model = False
@@ -119,28 +101,13 @@ def construct_hyper_param(parser, notebook=False):
 
     return args
 
-def get_bert(BERT_PT_PATH, bert_type, do_lower_case, no_pretraining, device):
-    # bert_config_file = os.path.join(BERT_PT_PATH, f'bert_config_{bert_type}.json')
-    # vocab_file = os.path.join(BERT_PT_PATH, f'vocab_{bert_type}.txt')
-    # init_checkpoint = os.path.join(BERT_PT_PATH, f'pytorch_model_{bert_type}.bin')
-
-    # bert_config = BertConfig.from_json_file(bert_config_file)
-    # tokenizer = tokenization.FullTokenizer(
-    #     vocab_file=vocab_file, do_lower_case=do_lower_case)
-    # bert_config.print_status()
-    # model_bert = BertModel(bert_config)
-
-    # if no_pretraining:
-    #     pass
-    # else:
-    #     model_bert.load_state_dict(torch.load(init_checkpoint, map_location='cpu'))
-    #     print("Load pre-trained parameters.")
+def get_bert(name, device):
     
     # # huggingface 
-    bert_config = BertConfig.from_pretrained('bert-base-multilingual-cased')
-    model_bert = BertModel.from_pretrained('bert-base-multilingual-cased')
+    bert_config = BertConfig.from_pretrained(name)
+    model_bert = BertModel.from_pretrained(name)
     model_bert.config.output_hidden_states = True # return all hidden states
-    tokenizer = BertTokenizer.from_pretrained('bert-base-multilingual-cased')
+    tokenizer = BertTokenizer.from_pretrained(name)
     
     model_bert.to(device)
 
@@ -153,14 +120,12 @@ def get_models(args, BERT_PT_PATH, trained=False, path_model_bert=None, path_mod
     agg_ops = ['', 'MAX', 'MIN', 'COUNT', 'SUM', 'AVG']
     cond_ops = ['=', '>', '<', 'OP']  # do not know why 'OP' required. Hence,
 
-    print(f"Batch_size = {args.bS * args.accumulate_gradients}")
-    print(f"BERT parameters:")
-    print(f"learning rate: {args.lr_bert}")
-    print(f"Fine-tune BERT: {args.fine_tune}")
+    print(f'BERT: pretrained {args.bert_name}')
+    print(f"BERT: learning rate: {args.lr_bert}")
+    print(f"BERT: Fine-tune BERT: {args.fine_tune}")
 
     # Get BERT
-    model_bert, tokenizer, bert_config = get_bert(BERT_PT_PATH, args.bert_type, args.do_lower_case,
-                                                  args.no_pretraining, device=device)
+    model_bert, tokenizer, bert_config = get_bert(name=args.bert_name, device=device)
     args.iS = bert_config.hidden_size * args.num_target_layers  # Seq-to-SQL input vector dimenstion
 
     # Get Seq-to-SQL
@@ -655,14 +620,23 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     args = construct_hyper_param(parser)
 
-    device = f"cuda:{args.gpu}" 
+    torch_seed(args.seed)
+
+    # gpu
+    GPU_NUM = args.gpu # select gpu number
+    device = torch.device(f'cuda:{GPU_NUM}' if torch.cuda.is_available() else 'cpu')
+    torch.cuda.set_device(device) # change allocation of current GPU
+    print ('Current cuda device ', torch.cuda.current_device()) # check
 
     ## 2. Paths
-    path_h = './data/ko_token' # './data'  # '/home/wonseok'
-    path_wikisql = './data/ko_token'  #  './data' # os.path.join(path_h, 'data', 'wikisql_tok')
+    path_h = args.datadir # './data'  # '/home/wonseok'
+    path_wikisql = args.datadir  #  './data' # os.path.join(path_h, 'data', 'wikisql_tok')
     BERT_PT_PATH = path_wikisql
 
-    path_save_for_evaluation = './'
+    if not os.path.isdir(args.logdir):
+        os.makedirs(args.logdir)
+
+    path_save_for_evaluation = args.logdir
 
     ## 3. Load data
 
@@ -673,14 +647,17 @@ if __name__ == '__main__':
         model, model_bert, tokenizer, bert_config = get_models(args, BERT_PT_PATH, device=device)
     else:
         # To start from the pre-trained models, un-comment following lines.
-        path_model_bert = './model_bert_best.pt'
-        path_model = './model_best.pt'
+        path_model_bert = os.path.join(args.logdir, 'model_bert_best.pt')
+        path_model = os.path.join(args.logdir, 'model_best.pt')
         model, model_bert, tokenizer, bert_config = get_models(args, BERT_PT_PATH, trained=True,
                                                                path_model_bert=path_model_bert, path_model=path_model, device=device)
 
     ## 5. Get optimizers
     if args.do_train:
         opt, opt_bert = get_opt(args, model, model_bert, args.fine_tune)
+
+        # History
+        writer = SummaryWriter(args.logdir)
 
         ## 6. Train
         acc_lx_t_best = -1
@@ -717,11 +694,35 @@ if __name__ == '__main__':
                                                       detail=False,
                                                       path_db=path_wikisql,
                                                       st_pos=0,
-                                                      dset_name='dev', EG=args.EG,
+                                                      dset_name='dev', 
+                                                      EG=args.EG,
                                                       device=device)
 
             print_result(epoch, acc_train, 'train')
             print_result(epoch, acc_dev, 'dev')
+
+            # tensorboard
+            writer.add_scalar('Train/Loss', acc_train[0], epoch)
+            writer.add_scalar('Train/Acc SC', acc_train[1], epoch)
+            writer.add_scalar('Train/Acc SA', acc_train[2], epoch)
+            writer.add_scalar('Train/Acc WN', acc_train[3], epoch)
+            writer.add_scalar('Train/Acc WC', acc_train[4], epoch)
+            writer.add_scalar('Train/Acc WO', acc_train[5], epoch)
+            writer.add_scalar('Train/Acc WV_idx', acc_train[6], epoch)
+            writer.add_scalar('Train/Acc WV', acc_train[7], epoch)
+            writer.add_scalar('Train/Acc Logical', acc_train[8], epoch)
+            writer.add_scalar('Train/Acc Execute', acc_train[9], epoch)
+            
+            writer.add_scalar('Dev/Loss', acc_dev[0], epoch)
+            writer.add_scalar('Dev/Acc SC', acc_dev[1], epoch)
+            writer.add_scalar('Dev/Acc SA', acc_dev[2], epoch)
+            writer.add_scalar('Dev/Acc WN', acc_dev[3], epoch)
+            writer.add_scalar('Dev/Acc WC', acc_dev[4], epoch)
+            writer.add_scalar('Dev/Acc WO', acc_dev[5], epoch)
+            writer.add_scalar('Dev/Acc WV_idx', acc_dev[6], epoch)
+            writer.add_scalar('Dev/Acc WV', acc_dev[7], epoch)
+            writer.add_scalar('Dev/Acc Logical', acc_dev[8], epoch)
+            writer.add_scalar('Dev/Acc Execute', acc_dev[9], epoch)
 
             # save results for the official evaluation
             save_for_evaluation(path_save_for_evaluation, results_dev, 'dev')
@@ -734,10 +735,10 @@ if __name__ == '__main__':
                 epoch_best = epoch
                 # save best model
                 state = {'model': model.state_dict()}
-                torch.save(state, os.path.join('.', 'model_best.pt'))
+                torch.save(state, os.path.join(args.logdir, f'model_best.pt'))
 
                 state = {'model_bert': model_bert.state_dict()}
-                torch.save(state, os.path.join('.', 'model_bert_best.pt'))
+                torch.save(state, os.path.join(args.logdir, f'model_bert_best.pt'))
 
             print(f" Best Dev lx acc: {acc_lx_t_best} at epoch: {epoch_best}")
 
