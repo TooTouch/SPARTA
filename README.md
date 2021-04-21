@@ -23,6 +23,12 @@ python translate.py --insert --datadir ./data --savedir ./ko_data
 ```
 
 # Model
+- [SQLova](): 
+
+> Performance (WIKI-SQL)
+
+English and Korean performance [[Here](https://github.com/TooTouch/SPARTA/tree/main/SQLova)]
+
 - [BRIDGE](https://github.com/salesforce/TabularSemanticParsing): Use the command from this link for reproduction
 
 > Performance (WIKI-SQL)
