@@ -50,7 +50,7 @@ Model | Train<br> Logical Form<br> Accuracy (%) | Train<br> Execution<br> Accura
 ---|---|---|---|---|---|---
 SQLova + EG<br>official | x | x | 84.2 | 90.2 | 83.6 | 89.6 
 SQLova + EG<br>implementation<br>(Epoch=10) | 83.6 | 88.7 | 82.8 | 88.8 | x | x
-SQLova + EG<br>Korean^<br> 66.4 | 72.7 | 68.2 | 76.3 | x | x
+SQLova + EG<br>Korean^<br> | 66.4 | 72.7 | 68.2 | 76.3 | x | x
 
 **`Korea^`**
 - the performance of Korean dataset
