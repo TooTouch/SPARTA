@@ -134,7 +134,10 @@ ko_data/
 model/
 viz/
 wandb/
+
+# SQLova
 sqlova_custom/
+!SQLova/sqlova/model/  
 
 # model
 *.pt 
