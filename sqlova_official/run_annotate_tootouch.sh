@@ -1,1 +1,1 @@
-python annotate_tootouch.py --din ./data/ko_token --dout ./data/ko_token
+python annotate_tootouch.py --din ./data/ko_token_not_h --dout ./data/ko_token_not_h
