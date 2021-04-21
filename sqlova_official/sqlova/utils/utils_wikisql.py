@@ -5,6 +5,7 @@
 
 import os, json
 import random as rd
+import numpy as np 
 from copy import deepcopy
 
 from matplotlib.pylab import *
@@ -18,6 +19,24 @@ from .utils import generate_perm_inv
 from .utils import json_default_type_checker
 
 from .wikisql_formatter import get_squad_style_ans
+
+def torch_seed(random_seed: int = 223):
+    """
+    set deterministic seed
+
+    Argument
+    --------
+    - random_seed : random seed number, default 223 is my birth day. haha
+
+    """
+    torch.manual_seed(random_seed)
+    torch.cuda.manual_seed(random_seed)
+    torch.cuda.manual_seed_all(random_seed) # if use multi-GPU
+    torch.backends.cudnn.deterministic = True
+    torch.backends.cudnn.benchmark = False
+    np.random.seed(random_seed)
+    rd.seed(random_seed)
+    os.environ['PYTHONHASHSEED'] = str(random_seed)
 
 
 # Load data -----------------------------------------------------------------------------------------------
