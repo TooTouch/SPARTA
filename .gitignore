@@ -134,8 +134,9 @@ ko_data/
 model/
 viz/
 wandb/
-sqlova_custom/corenlp/
+sqlova_custom/
 
 # model
 *.pt 
 *.pth
+
