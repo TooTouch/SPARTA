@@ -1,5 +1,4 @@
 import os
-import utils
 import json
 from tqdm import tqdm
 import pandas as pd
