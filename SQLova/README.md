@@ -25,6 +25,8 @@ We translated English question into Korean question in three ways as follows.
 
 ### run example
 
+You can find translate commends in [translate.sh](https://github.com/TooTouch/SPARTA/blob/main/SQLova/run_translate.sh)
+
 We translated English question into Korea question in three steps as follow
 
 1. Create a question dataframe to translate English to Korean.
