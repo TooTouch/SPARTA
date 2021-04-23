@@ -23,6 +23,13 @@ python3 train.py --do_train --seed 1 --bS 8 --tepoch 50 \
                  --accumulate_gradients 2 --bert_name bert-base-multilingual-cased \
                  --fine_tune --lr 0.001 --lr_bert 0.00001 --max_seq_length 222 --EG
 
+# 그래픽카드 소음 때문에 이어서 학습 # 37 epoch부터 다시
+python3 train.py --do_train --seed 1 --bS 8 --tepoch 13 \
+                 --datadir ./data/ko_token --logdir ./logs/ko_token \
+                 --accumulate_gradients 2 --bert_name bert-base-multilingual-cased \
+                 --fine_tune --lr 0.001 --lr_bert 0.00001 --max_seq_length 222 --EG \
+                 --trained 
+
 # ====================
 # ko_data_not_h
 # ====================
@@ -39,3 +46,11 @@ python3 train.py --do_train --seed 223 --bS 8 --tepoch 50 \
                  --accumulate_gradients 2 --bert_name bert-base-multilingual-cased \
                  --fine_tune --lr 0.001 --lr_bert 0.00001 --max_seq_length 222 --EG \
                  --gpu 1
+
+# 그래픽카드 소음 때문에 이어서 학습 # 22 epoch 부터 다시
+python3 train.py --do_train --seed 223 --bS 8 --tepoch 28 \
+                 --datadir ./data/ko_from_table --logdir ./logs/ko_from_table \
+                 --accumulate_gradients 2 --bert_name bert-base-multilingual-cased \
+                 --fine_tune --lr 0.001 --lr_bert 0.00001 --max_seq_length 222 --EG \
+                 --trained --gpu 1
+

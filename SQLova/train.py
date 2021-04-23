@@ -42,7 +42,6 @@ def construct_hyper_param(parser, notebook=False):
     parser.add_argument('--infer_loop', default=False, action='store_true')
 
     parser.add_argument("--trained", default=False, action='store_true')
-
     parser.add_argument('--tepoch', default=100, type=int)
     parser.add_argument("--bS", default=32, type=int,
                         help="Batch size")
@@ -115,7 +114,7 @@ def get_bert(name, device):
 
 
 
-def get_models(args, BERT_PT_PATH, trained=False, path_model_bert=None, path_model=None, device='cpu'):
+def get_models(args, trained=False, path_model_bert=None, path_model=None, device='cpu'):
     # some constants
     agg_ops = ['', 'MAX', 'MIN', 'COUNT', 'SUM', 'AVG']
     cond_ops = ['=', '>', '<', 'OP']  # do not know why 'OP' required. Hence,
@@ -631,7 +630,6 @@ if __name__ == '__main__':
     ## 2. Paths
     path_h = args.datadir # './data'  # '/home/wonseok'
     path_wikisql = args.datadir  #  './data' # os.path.join(path_h, 'data', 'wikisql_tok')
-    BERT_PT_PATH = path_wikisql
 
     if not os.path.isdir(args.logdir):
         os.makedirs(args.logdir)
@@ -644,13 +642,22 @@ if __name__ == '__main__':
 
     ## 4. Build & Load models
     if not args.trained:
-        model, model_bert, tokenizer, bert_config = get_models(args, BERT_PT_PATH, device=device)
+        model, model_bert, tokenizer, bert_config = get_models(args, 
+                                                              device=device)
     else:
+        # start epoch
+        train_info = json.load(open(os.path.join(args.logdir, 'train_info.json'),'r'))
+        args.start_epoch = train_info['last_epoch'] + 1
+        args.tepoch = args.start_epoch + args.tepoch 
+
         # To start from the pre-trained models, un-comment following lines.
         path_model_bert = os.path.join(args.logdir, 'model_bert_best.pt')
         path_model = os.path.join(args.logdir, 'model_best.pt')
-        model, model_bert, tokenizer, bert_config = get_models(args, BERT_PT_PATH, trained=True,
-                                                               path_model_bert=path_model_bert, path_model=path_model, device=device)
+        model, model_bert, tokenizer, bert_config = get_models(args, 
+                                                               trained=True,
+                                                               path_model_bert=path_model_bert, 
+                                                               path_model=path_model, 
+                                                               device=device)
 
     ## 5. Get optimizers
     if args.do_train:
@@ -662,7 +669,7 @@ if __name__ == '__main__':
         ## 6. Train
         acc_lx_t_best = -1
         epoch_best = -1
-        for epoch in range(args.tepoch):
+        for epoch in range(args.start_epoch, args.tepoch):
             # train
             print('epochs: ',epoch)
             acc_train, aux_out_train = train(train_loader,
@@ -727,18 +734,27 @@ if __name__ == '__main__':
             # save results for the official evaluation
             save_for_evaluation(path_save_for_evaluation, results_dev, 'dev')
 
-            # save best model
+            # save best model and train information
             # Based on Dev Set logical accuracy lx
             acc_lx_t = acc_dev[-2]
+            train_info = {'last_epoch':epoch}
+
             if acc_lx_t > acc_lx_t_best:
                 acc_lx_t_best = acc_lx_t
                 epoch_best = epoch
+
+                train_info['best_acc_lx'] = acc_lx_t_best
+                train_info['best_epoch'] = epoch_best
+                
                 # save best model
                 state = {'model': model.state_dict()}
                 torch.save(state, os.path.join(args.logdir, f'model_best.pt'))
 
                 state = {'model_bert': model_bert.state_dict()}
                 torch.save(state, os.path.join(args.logdir, f'model_bert_best.pt'))
+
+            # save train info
+            json.dump(train_info, open(os.path.join(args.logdir, 'train_info.json'), 'w'))
 
             print(f" Best Dev lx acc: {acc_lx_t_best} at epoch: {epoch_best}")
 
