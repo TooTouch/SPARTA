@@ -9,10 +9,21 @@
 
 ## Create Korean dataset
 
+We translated English question into Korean question in three ways as follows. 
+
+[Download dataset](https://drive.google.com/drive/u/0/folders/1PnC_JU_QqCVEbyH2WaOETd51dW8Ssc3P)
+
+1. **ko_token** : Keep `where values` in label and `header` of table among the words in English question
+2. **ko_token_not_h** : Keep `header` of table among the words in English question
+3. **ko_from_table** : Keep `values` in table among the words in English question
+
 <div align='center'>
-    <strong>Translation Process</strong><br>
+    <strong>Translation Process [ko_token]</strong><br>
     <img width="500" src='https://user-images.githubusercontent.com/37654013/115502415-ddda9b80-a2af-11eb-9892-029d914aa2f0.png'>
 </div>
+
+
+### run example
 
 We translated English question into Korea question in three steps as follow
 
@@ -29,6 +40,7 @@ python translate.py --replace value --savedir $savedir
 ```bash
 python translate.py --replace token --savedir $savedir
 ```
+
 
 # Pre-preprocess
 
@@ -56,5 +68,6 @@ SQLova + EG<br>Korean^<br> | 66.4 | 72.7 | 68.2 | 76.3 | x | x
 - the performance of Korean dataset
 - training epochs was 100
 - pretrained multilingual cased BERT model was used for embedding inputs
+- using 
 
 
