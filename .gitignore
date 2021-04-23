@@ -2,10 +2,10 @@
 __pycache__/
 *.py[cod]
 *$py.class
-vscods/
+.vscode/
 # C extensions
 *.so
-
+*.zip
 # Distribution / packaging
 .Python
 build/
@@ -134,3 +134,12 @@ ko_data/
 model/
 viz/
 wandb/
+
+# SQLova
+sqlova_custom/
+!SQLova/sqlova/model/  
+
+# model
+*.pt 
+*.pth
+

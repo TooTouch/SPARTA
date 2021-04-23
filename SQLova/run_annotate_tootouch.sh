@@ -1,0 +1,1 @@
+python annotate_tootouch.py --din ./data/ko_from_table --dout ./data/ko_from_table

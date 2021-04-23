@@ -1,0 +1,6 @@
+matplotlib 
+transformers==4.5.1
+records==0.5.2
+babel
+ujson
+openpyxl
