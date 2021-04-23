@@ -8,6 +8,22 @@ We implement the deep learning model for converting Korean language to SQL query
 
 ## Create Korean dataset
 
+We translated English question into Korean question in three ways as follows. 
+
+[Download dataset](https://drive.google.com/drive/u/0/folders/1PnC_JU_QqCVEbyH2WaOETd51dW8Ssc3P)
+
+1. **multi_wikisql1.1** : Keep values of table using `fuzzy string matching` among the words in English question
+1. **ko_token** : Keep `where values` in label and `header` of table among the words in English question
+2. **ko_token_not_h** : Keep `header` of table among the words in English question
+3. **ko_from_table** : Keep `values` in table among the words in English question
+
+<div align='center'>
+    <strong>Translation Process [ko_token]</strong><br>
+    <img width="500" src='https://user-images.githubusercontent.com/37654013/115502415-ddda9b80-a2af-11eb-9892-029d914aa2f0.png'>
+</div>
+
+### Run
+
 1. Create a question dataframe to translate English to Korean.
 
 ```bash
