@@ -25,14 +25,14 @@ process_sql_in_execution_order="False"
 sql_consistency_check="False"
 share_vocab="False"
 sample_ground_truth="False"
-save_nn_weights_for_visualizations="False"
+save_nn_weights_for_visualizations="True"
 vocab_min_freq=0
 text_vocab_min_freq=0
 program_vocab_min_freq=0
 max_in_seq_len=512
 max_out_seq_len=60
 
-num_steps=15000
+num_steps=30000
 curriculum_interval=0
 num_peek_steps=400
 num_accumulation_steps=3
@@ -77,7 +77,7 @@ ff_hidden_dropout_rate=0.0
 
 grad_norm=0.3
 decoding_algorithm="beam-search"
-beam_size=64
+beam_size=16
 bs_alpha=1.0
 
 data_parallel="False"

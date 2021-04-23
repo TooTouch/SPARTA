@@ -508,7 +508,10 @@ class EncoderDecoderLFramework(LFramework):
             output_str = self.output_post_process(out_tokens)
             output_str = output_str.replace(self.out_vocab.num_token, '1').replace('<NUM>', '1')
             output_str = output_str.replace(self.out_vocab.str_token, '"string"').replace('<STRING>', "string")
+
         if self.save_vis:
+            if dataset_id == WIKISQL:
+                out_tokens = decoder_output
             text_ptr_weights_vis = (example.text_ptr_values, out_tokens, ops.var_to_numpy(text_ptr_weights[idx]))
             if self.model_id in [SEQ2SEQ_PG, BRIDGE]:
                 pointer_vis = (out_tokens, ops.var_to_numpy(p_pointers[idx]))
