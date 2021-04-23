@@ -11,7 +11,7 @@ timeColumnsCount = 7
 #생성할 Data
 generateNum = 100000
 
-carCount =500
+carCount =50
 devicesCount =500
 vehicleCount = 500
 
