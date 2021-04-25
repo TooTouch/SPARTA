@@ -4,8 +4,8 @@ import random
 import string
 import cx_Oracle
 
-tableIdx = "1-11111"
-table = "TRANSFER"
+tableIdx = "1-11112"
+table = "TRANSFER_SUMMARY"
 
 def getColumn(tableName):
     selectSql = "SELECT COLUMN_NAME FROM all_tab_columns WHERE 1=1 AND TABLE_NAME ='"+tableName+"' ORDER BY COLUMN_ID"    
@@ -35,11 +35,17 @@ def getRows(tableName, cond):
     for row in cursor:        
         for i in range(len(row)):            
             if i == 0:
-                rowStr = '["'+row[i]
+                print(row[i])
+                if (isinstance(row[i], datetime.date)):                                                            
+                    rowStr = '["'+row[i].strftime("%Y/%m/%d %H:%M:%S")
+                elif (isinstance(row[i], int) or isinstance(row[i], float) ):
+                    rowStr = '["'+str(row[i])
+                else:
+                    rowStr = '["'+row[i]
             else:
                 if (isinstance(row[i], datetime.date)):                                                            
                     rowStr = rowStr+', '+ '"' +row[i].strftime("%Y/%m/%d %H:%M:%S") +'"'
-                elif (isinstance(row[i], int)):
+                elif (isinstance(row[i], int) or isinstance(row[i], float)):
                     rowStr = rowStr+', '+str(row[i])
                 else:
                     rowStr = rowStr+', '+'"'+row[i]+'"'
