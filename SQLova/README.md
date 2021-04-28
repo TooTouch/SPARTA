@@ -124,7 +124,7 @@ Name            |SC Accuracy	    |SA Accuracy	    |WN Accuracy	    |WC Accuracy	
 
 **Test Set**
 
-Name	        |SC Accuracy	    |SA Accuracy	    |WN Accuracy	    |WC Accuracy	    |WO Accuracy	    |acc_wv	    |Logical Form<br>Accuracy	    |Execution<br>Accuracy
+Name	        |SC Accuracy	    |SA Accuracy	    |WN Accuracy	    |WC Accuracy	    |WO Accuracy	    |WV Accuracy	    |Logical Form<br>Accuracy	    |Execution<br>Accuracy
 ---|---|---|---|---|---|---|---|---
 **ko_token**	    |0.875173	|0.858357	|0.896712	|0.818050	|0.853823	|0.845572	|0.667275	|0.747827
 **ko_token_not_h**	|0.751354	|0.844502	|0.880338	|0.781144	|0.835118	|0.825860	|0.564681	|0.656821
