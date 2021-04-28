@@ -57,19 +57,81 @@ To tokenize English questions, `stanza` which is an open source for NLP publishe
 python annotate_tootouch.py --din $datadir --dout $savedir
 ```
 
+# Training and Test Details
 
-# Result
+**Hyperparameters**
+- Epochs : 50
+- Learning rate : 0.001(model) 0.00001(BERT model)
+- Batch size : 16
+
+**Opimization**
+- Model : Adam optimizer
+- BERT model : Adam optimizer
+
+**Model Parameters**
+- Hidden size of LSTM : 100
+- The number of LSTM layers : 2
+- Drop out: 0.3
+
+**BERT Model Parameters**
+- Max sequence length : 222
+- The number of target layer : 2
+
+**Test Setting**
+- Beam size : 4
+- Execution Guided Decoding : True
+
+# History
+
+- Training History : https://tensorboard.dev/experiment/kdkw2wK1Q0elOYKhDK2RzA/
+
+- Blue : ko_token
+- Red : ko_token_not_h
+- Orange : ko_from_table
+
+**Train set**
+
+<div align='center'>
+    <img width="1462" alt="image" src="https://user-images.githubusercontent.com/37654013/116349345-c01ab280-a82a-11eb-93bb-bad641738fad.png">
+</div>
+
+
+**Dev set**
+
+<div align='center'>
+    <img width="1463" alt="image" src="https://user-images.githubusercontent.com/37654013/116349180-687c4700-a82a-11eb-956f-bc1e32409bc7.png">
+</div>
+
+
+# Results
+
+
+**Reproduction Test**
 
 Model | Train<br> Logical Form<br> Accuracy (%) | Train<br> Execution<br> Accuracy (%) | Dev<br> Logical Form<br> Accuracy (%) | Dev<br> Execution<br> Accuracy (%) | Test<br> Logical Form<br> Accuracy (%) | Test<br> Execution<br> Accuracy (%)
 ---|---|---|---|---|---|---
 SQLova + EG<br>official | x | x | 84.2 | 90.2 | 83.6 | 89.6 
 SQLova + EG<br>implementation<br>(Epoch=10) | 83.6 | 88.7 | 82.8 | 88.8 | x | x
-SQLova + EG<br>`Korean^`<br> | 66.4 | 72.7 | 68.2 | 76.3 | x | x
+SQLova + EG<br>hugging face<br>(Epoch=10) | 69.7 | 79.3 | 76.7 | 83.7 | 76.1 | 83.8
 
-**`Korea^`**
-- the performance of Korean dataset
-- training epochs was 100
-- pretrained multilingual cased BERT model was used for embedding inputs
-- using 
+**Dev Set**
+
+Name            |SC Accuracy	    |SA Accuracy	    |WN Accuracy	    |WC Accuracy	    |WO Accuracy	    |WV Accuracy	    |Logical Form<br>Accuracy	    |Execution<br>Accuracy
+---|---|---|---|---|---|---|---|---
+**ko_token**	    |0.878399	|0.853462	|0.896924	|0.824724	|0.852155	|0.848355	|0.670348	|0.752998
+**ko_token_not_h**	|0.760361	|0.838499	|0.876499	|0.781024	|0.834461	|0.824724	|0.572141	|0.660254
+**ko_from_table**	|0.535091	|0.641492	|0.660610	|0.562404	|0.618216	|0.609073	|0.383327	|0.458497
+
+**Test Set**
+
+Name	        |SC Accuracy	    |SA Accuracy	    |WN Accuracy	    |WC Accuracy	    |WO Accuracy	    |WV Accuracy	    |Logical Form<br>Accuracy	    |Execution<br>Accuracy
+---|---|---|---|---|---|---|---|---
+**ko_token**	    |0.875173	|0.858357	|0.896712	|0.818050	|0.853823	|0.845572	|0.667275	|0.747827
+**ko_token_not_h**	|0.751354	|0.844502	|0.880338	|0.781144	|0.835118	|0.825860	|0.564681	|0.656821
+**ko_from_table**	|0.526956	|0.641643	|0.658521	|0.558509	|0.614750	|0.606059	|0.376685	|0.452828
+
+
+
+
 
 

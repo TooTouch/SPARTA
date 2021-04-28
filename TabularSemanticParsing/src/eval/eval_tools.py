@@ -34,8 +34,9 @@ def get_exact_set_match_metrics(examples, pred_list, verbose=False, vocabs=None,
     for i, (example, example_pred) in enumerate(zip(examples, pred_list)):
         schema_graph = schema_graphs.get_schema(example.db_id)
         sql_correct, select_correct, group_by_correct, order_by_correct, from_correct, where_correct, having_correct, \
-        limit_correct = \
-            esm.eval_example(example_pred, example, verbose=verbose, example_id=i, schema_graph=schema_graph)
+            limit_correct = \
+            esm.eval_example(example_pred, example, verbose=verbose,
+                             example_id=i, schema_graph=schema_graph)
         if sql_correct:
             metrics['sql'] += 1.0
         if select_correct:
@@ -78,21 +79,25 @@ class ExactSetMatch(object):
     def eval_example(self, example_pred, example, verbose=False, example_id=None, schema_graph=None):
         example_pred = self.pack_sql(example_pred)
         gt_ast = example.program_ast
-        s_correct, g_correct, o_correct, f_correct, w_correct, h_correct, l_correct = self.match(example_pred, gt_ast)
+        s_correct, g_correct, o_correct, f_correct, w_correct, h_correct, l_correct = self.match(
+            example_pred, gt_ast)
         sql_correct = s_correct and g_correct and o_correct and f_correct and w_correct and h_correct and l_correct
 
         if not sql_correct and verbose:
             assert(schema_graph is not None)
 
             text = example.text
-            text_tokens = vec.de_vectorize(example.text_ids, return_tokens=True)
+            text_tokens = vec.de_vectorize(
+                example.text_ids, return_tokens=True)
             text_ptr_values = example.text_ptr_values
             print('Example {}'.format(example_id))
             print('NL:\t{}'.format(text.encode('utf-8')))
             print('NL tokens:\t{}'.format(encode_str_list(text_tokens, 'utf-8')))
-            print('NL tokens (original):\t{}'.format(encode_str_list(text_ptr_values, 'utf-8')))
+            print('NL tokens (original):\t{}'.format(
+                encode_str_list(text_ptr_values, 'utf-8')))
             print('NL tokens (recovered): {}'.format(
-                vec.de_vectorize_ptr(example.text_ptr_value_ids, self.value_vocab, text_ptr_values).encode('utf-8'),
+                vec.de_vectorize_ptr(
+                    example.text_ptr_value_ids, self.value_vocab, text_ptr_values).encode('utf-8'),
                 return_tokens=True))
 
             for i, program in enumerate(example.program_list):
@@ -113,9 +118,12 @@ class ExactSetMatch(object):
 
             serializer = SQLSerializer(schema_graph, self.field_vocab, self.aggregation_ops, self.arithmetic_ops,
                                        self.condition_ops, self.logical_ops, self.value_vocab)
-            print('select clause: {}'.format(serializer.serialize_select(example_pred['select'])))
-            print('group by clause: {}'.format(serializer.serialize_group_by(example_pred['groupBy'])))
-            print('order by clause: {}'.format(serializer.serialize_order_by(example_pred['orderBy'])))
+            print('select clause: {}'.format(
+                serializer.serialize_select(example_pred['select'])))
+            print('group by clause: {}'.format(
+                serializer.serialize_group_by(example_pred['groupBy'])))
+            print('order by clause: {}'.format(
+                serializer.serialize_order_by(example_pred['orderBy'])))
 
         return sql_correct, s_correct, g_correct, o_correct, f_correct, w_correct, h_correct, l_correct
 
@@ -180,13 +188,15 @@ class ExactSetMatch(object):
         assert (len(aggs) == len(vu_aggs))
         assert (len(distincts) == len(vu_aggs))
         cla_distinct = (cla_distinct[0] == 1)
-        out = (cla_distinct, self.pack_select_field_expression_list(fields, aggs, distincts, vu_aggs))
+        out = (cla_distinct, self.pack_select_field_expression_list(
+            fields, aggs, distincts, vu_aggs))
         return out
 
     def pack_select_field_expression_list(self, fields, aggs, distincts, vu_aggs):
         out = []
         for fields_, aggs_, distincts_, vu_agg in zip(fields, aggs, distincts, vu_aggs):
-            out.append((vu_agg, self.pack_field_expression(fields_, aggs_, distincts_)))
+            out.append((vu_agg, self.pack_field_expression(
+                fields_, aggs_, distincts_)))
         return out
 
     def pack_group_by_clause(self, pred):
@@ -206,7 +216,8 @@ class ExactSetMatch(object):
         asc = 'asc' if ascs[0] == 1 else 'desc'
         field_expression_list = []
         for fields_, aggs_, distincts_ in zip(fields, aggs, distincts):
-            field_expression_list.append(self.pack_field_expression(fields_, aggs_, distincts_))
+            field_expression_list.append(
+                self.pack_field_expression(fields_, aggs_, distincts_))
         return asc, field_expression_list
 
     def pack_from_clause(self, pred):
@@ -228,7 +239,8 @@ class ExactSetMatch(object):
         if fields[i] < self.arithmetic_ops.full_size:
             # current node is an op
             if len(fields) > 1:
-                second_arg = self.pack_field_expression(fields[i+2:], aggs[i+2:], distincts[i+2:])
+                second_arg = self.pack_field_expression(
+                    fields[i+2:], aggs[i+2:], distincts[i+2:])
                 if second_arg is None:
                     return None
                 return fields[i], self.pack_field(fields[i+1], aggs[i+1], distincts[i+1]), second_arg

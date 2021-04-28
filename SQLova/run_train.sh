@@ -10,9 +10,9 @@ python3 train.py --do_train --seed 1 --bS 8 --tepoch 10 \
 # ====================
 # ko_data v1 history 없음 ㅠㅠ
 # ====================
-python3 train.py --do_train --seed 1 --bS 8 \
+python3 train.py --do_train --seed 1 --bS 8 --tepoch 100 \
                  --datadir ./data/ko_token --logdir ./logs/ko_token \
-                 --accumulate_gradients --bert_name bert-base-multilingual-cased \
+                 --accumulate_gradients 2 --bert_name bert-base-multilingual-cased \
                  --fine_tune --lr 0.001 --lr_bert 0.00001 --max_seq_length 222 --EG
 
 # ====================

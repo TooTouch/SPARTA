@@ -136,7 +136,8 @@ viz/
 wandb/
 
 # SQLova
-sqlova_custom/
+sqlova_custom
+SQLova/corenlp
 !SQLova/sqlova/model/  
 
 # model

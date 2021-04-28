@@ -101,6 +101,12 @@ def inference(sp):
             print('Top-5 exe match: {:.3f}'.format(metrics['top_5_ex']))
             print('Top-10 exet match: {:.3f}'.format(metrics['top_10_ex']))
         print('Table error: {:.3f}'.format(metrics['table_err']))
+        performance = os.path.join(sp.model_dir, f"test_performance_{args.data_dir.split('/')[1]}.txt")
+        metric_keys = ['top_1_em', 'top_2_em', 'top_3_em', 'top_5_em', 'top_10_em', 'top_1_ex', 'top_2_ex', 
+        'top_3_ex', 'top_5_ex', 'top_10_ex', 'table_err']
+        with open(performance, 'w') as pf:
+            for key in metric_keys:
+                pf.write(f'{key}: {metrics[key]:.3f}\n')
 
     examples = dataset[split]
     # random.shuffle(examples)
@@ -160,6 +166,7 @@ def inference(sp):
 
     print('{} set performance'.format(split.upper()))
     evaluate(examples, out_dict)
+    
     if args.augment_with_wikisql:
         wikisql_out_dict = sp.forward(examples_wikisql, verbose=False)
         print('*** WikiSQL ***')
