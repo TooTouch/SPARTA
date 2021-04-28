@@ -57,7 +57,7 @@ To tokenize English questions, `stanza` which is an open source for NLP publishe
 python annotate_tootouch.py --din $datadir --dout $savedir
 ```
 
-# Training Detail
+# Training Details
 
 **Hyperparameters**
 - Epochs : 50
