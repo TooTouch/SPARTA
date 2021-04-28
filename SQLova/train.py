@@ -38,10 +38,14 @@ def construct_hyper_param(parser, notebook=False):
     parser.add_argument('--datadir', default='./data/ko_token/', type=str, help='data directory')
     parser.add_argument('--logdir', default='./logs/ko_token/', type=str, help='log directory')
     parser.add_argument("--do_train", default=False, action='store_true')
+    parser.add_argument("--do_train_try", default=False, action='store_true')
+    parser.add_argument('--do_dev', default=False, action='store_true')
+    parser.add_argument('--do_test', default=False, action='store_true')
     parser.add_argument('--do_infer', default=False, action='store_true')
     parser.add_argument('--infer_loop', default=False, action='store_true')
 
     parser.add_argument("--trained", default=False, action='store_true')
+    parser.add_argument('--start_epoch', default=0, type=int)
     parser.add_argument('--tepoch', default=100, type=int)
     parser.add_argument("--bS", default=32, type=int,
                         help="Batch size")
@@ -169,13 +173,19 @@ def get_opt(args, model, model_bert, fine_tune):
 
 
 
-
 def get_data(path_wikisql, args):
-    train_data, train_table, dev_data, dev_table, _, _ = load_wikisql(path_wikisql, args.toy_model, args.toy_size,
-                                                                      no_w2i=True, no_hs_tok=True)
-    train_loader, dev_loader = get_loader_wikisql(train_data, dev_data, args.bS, shuffle_train=True)
+    train_data, train_table, dev_data, dev_table, test_data, test_table, _, _ = load_wikisql(path_wikisql, 
+                                                                                             args.toy_model, 
+                                                                                             args.toy_size,
+                                                                                             no_w2i=True, 
+                                                                                             no_hs_tok=True)
+    train_loader, dev_loader, test_loader = get_loader_wikisql(train_data, 
+                                                               dev_data, 
+                                                               test_data,
+                                                               args.bS, 
+                                                               shuffle_train=True)
 
-    return train_data, train_table, dev_data, dev_table, train_loader, dev_loader
+    return train_data, train_table, dev_data, dev_table, test_data, test_table, train_loader, dev_loader, test_loader
 
 
 def train(train_loader, train_table, model, model_bert, opt, bert_config, tokenizer,
@@ -392,7 +402,7 @@ def test(data_loader, data_table, model, model_bert, bert_config, tokenizer,
 
     engine = DBEngine(os.path.join(path_db, f"{dset_name}.db"))
     results = []
-    for iB, t in enumerate(data_loader):
+    for iB, t in enumerate(tqdm(data_loader, desc=f'{dset_name.upper()}', leave=True)):
 
         cnt += len(t)
         if cnt < st_pos:
@@ -537,11 +547,10 @@ def tokenize_corenlp_direct_version(client, nlu1):
             nlu1_tok.append(tok.originalText)
     return nlu1_tok
 
-
 def infer(nlu1,
           table_name, data_table, path_db, db_name,
           model, model_bert, bert_config, max_seq_length, num_target_layers,
-          beam_size=4, show_table=False, show_answer_only=False):
+          beam_size=4, show_table=False, show_answer_only=False, device='cpu'):
     # I know it is of against the DRY principle but to minimize the risk of introducing bug w, the infer function introuced.
     model.eval()
     model_bert.eval()
@@ -560,14 +569,27 @@ def infer(nlu1,
     hs_t = [[]]
 
     wemb_n, wemb_h, l_n, l_hpu, l_hs, \
-    nlu_tt, t_to_tt_idx, tt_to_t_idx \
-        = get_wemb_bert(bert_config, model_bert, tokenizer, nlu_t, hds, max_seq_length,
-                        num_out_layers_n=num_target_layers, num_out_layers_h=num_target_layers)
+    nlu_tt, t_to_tt_idx, tt_to_t_idx = get_wemb_bert(bert_config, 
+                                                     model_bert, 
+                                                     tokenizer, 
+                                                     nlu_t, 
+                                                     hds, 
+                                                     max_seq_length,
+                                                     num_out_layers_n=num_target_layers, 
+                                                     num_out_layers_h=num_target_layers, 
+                                                     device=device)
 
-    prob_sca, prob_w, prob_wn_w, pr_sc, pr_sa, pr_wn, pr_sql_i = model.beam_forward(wemb_n, l_n, wemb_h, l_hpu,
-                                                                                    l_hs, engine, tb,
-                                                                                    nlu_t, nlu_tt,
-                                                                                    tt_to_t_idx, nlu,
+    prob_sca, prob_w, prob_wn_w, pr_sc, pr_sa, pr_wn, pr_sql_i = model.beam_forward(wemb_n, 
+                                                                                    l_n, 
+                                                                                    wemb_h, 
+                                                                                    l_hpu,
+                                                                                    l_hs, 
+                                                                                    engine, 
+                                                                                    tb,
+                                                                                    nlu_t, 
+                                                                                    nlu_tt,
+                                                                                    tt_to_t_idx, 
+                                                                                    nlu,
                                                                                     beam_size=beam_size,
                                                                                     device=device)
 
@@ -607,10 +629,16 @@ def print_result(epoch, acc, dname):
     ave_loss, acc_sc, acc_sa, acc_wn, acc_wc, acc_wo, acc_wvi, acc_wv, acc_lx, acc_x = acc
 
     print(f'{dname} results ------------')
-    print(
-        f" Epoch: {epoch}, ave loss: {ave_loss}, acc_sc: {acc_sc:.3f}, acc_sa: {acc_sa:.3f}, acc_wn: {acc_wn:.3f}, \
+    if epoch == -1:
+        print(
+        f"ave loss: {ave_loss}, acc_sc: {acc_sc:.3f}, acc_sa: {acc_sa:.3f}, acc_wn: {acc_wn:.3f}, \
         acc_wc: {acc_wc:.3f}, acc_wo: {acc_wo:.3f}, acc_wvi: {acc_wvi:.3f}, acc_wv: {acc_wv:.3f}, acc_lx: {acc_lx:.3f}, acc_x: {acc_x:.3f}"
-    )
+        )
+    else:    
+        print(
+            f" Epoch: {epoch}, ave loss: {ave_loss}, acc_sc: {acc_sc:.3f}, acc_sa: {acc_sa:.3f}, acc_wn: {acc_wn:.3f}, \
+            acc_wc: {acc_wc:.3f}, acc_wo: {acc_wo:.3f}, acc_wvi: {acc_wvi:.3f}, acc_wv: {acc_wv:.3f}, acc_lx: {acc_lx:.3f}, acc_x: {acc_x:.3f}"
+        )
 
 
 if __name__ == '__main__':
@@ -627,18 +655,12 @@ if __name__ == '__main__':
     torch.cuda.set_device(device) # change allocation of current GPU
     print ('Current cuda device ', torch.cuda.current_device()) # check
 
-    ## 2. Paths
-    path_h = args.datadir # './data'  # '/home/wonseok'
-    path_wikisql = args.datadir  #  './data' # os.path.join(path_h, 'data', 'wikisql_tok')
-
     if not os.path.isdir(args.logdir):
         os.makedirs(args.logdir)
 
-    path_save_for_evaluation = args.logdir
-
     ## 3. Load data
 
-    train_data, train_table, dev_data, dev_table, train_loader, dev_loader = get_data(path_wikisql, args)
+    train_data, train_table, dev_data, dev_table, test_data, test_table, train_loader, dev_loader, test_loader = get_data(args.datadir, args)
 
     ## 4. Build & Load models
     if not args.trained:
@@ -684,7 +706,7 @@ if __name__ == '__main__':
                                              args.accumulate_gradients,
                                              opt_bert=opt_bert,
                                              st_pos=0,
-                                             path_db=path_wikisql,
+                                             path_db=args.datadir,
                                              dset_name='train',
                                              device=device)
 
@@ -699,7 +721,7 @@ if __name__ == '__main__':
                                                       args.max_seq_length,
                                                       args.num_target_layers,
                                                       detail=False,
-                                                      path_db=path_wikisql,
+                                                      path_db=args.datadir,
                                                       st_pos=0,
                                                       dset_name='dev', 
                                                       EG=args.EG,
@@ -732,7 +754,7 @@ if __name__ == '__main__':
             writer.add_scalar('Dev/Acc Execute', acc_dev[9], epoch)
 
             # save results for the official evaluation
-            save_for_evaluation(path_save_for_evaluation, results_dev, 'dev')
+            save_for_evaluation(args.logdir, results_dev, 'dev')
 
             # save best model and train information
             # Based on Dev Set logical accuracy lx
@@ -754,9 +776,63 @@ if __name__ == '__main__':
                 torch.save(state, os.path.join(args.logdir, f'model_bert_best.pt'))
 
             # save train info
-            json.dump(train_info, open(os.path.join(args.logdir, 'train_info.json'), 'w'))
+            json.dump(train_info, open(os.path.join(args.logdir, 'train_info.json'), 'w'), indent=4)
 
             print(f" Best Dev lx acc: {acc_lx_t_best} at epoch: {epoch_best}")
+
+    if args.do_dev:
+        # check DEV
+        with torch.no_grad():
+            acc_test, results_test, cnt_list = test(dev_loader,
+                                                    dev_table,
+                                                    model,
+                                                    model_bert,
+                                                    bert_config,
+                                                    tokenizer,
+                                                    args.max_seq_length,
+                                                    args.num_target_layers,
+                                                    detail=False,
+                                                    path_db=args.datadir,
+                                                    st_pos=0,
+                                                    dset_name='dev', 
+                                                    EG=args.EG,
+                                                    device=device)
+        print_result(-1, acc_test, 'do_dev')
+
+        # save evaluation 
+        keys_lst = ['loss','acc_sc','acc_sa','acc_wn','acc_wc','acc_wo','acc_wvi','acc_wv','acc_lx','acc_x']
+        save_dict = dict([(keys_lst[i], acc_test[i]) for i in range(len(acc_test))])
+        json.dump(save_dict, open(os.path.join(args.logdir, 'dev_performance.json'),'w'), indent=4)
+
+
+    if args.do_test:
+        # check DEV
+        with torch.no_grad():
+            acc_test, results_test, cnt_list = test(test_loader,
+                                                    test_table,
+                                                    model,
+                                                    model_bert,
+                                                    bert_config,
+                                                    tokenizer,
+                                                    args.max_seq_length,
+                                                    args.num_target_layers,
+                                                    detail=False,
+                                                    path_db=args.datadir,
+                                                    st_pos=0,
+                                                    dset_name='test', 
+                                                    EG=args.EG,
+                                                    device=device)
+
+        print_result(-1, acc_test, 'test')
+
+        # save evaluation 
+        keys_lst = ['loss','acc_sc','acc_sa','acc_wn','acc_wc','acc_wo','acc_wvi','acc_wv','acc_lx','acc_x']
+        save_dict = dict([(keys_lst[i], acc_test[i]) for i in range(len(acc_test))])
+        json.dump(save_dict, open(os.path.join(args.logdir, 'test_performance.json'),'w'), indent=4)
+
+        # save results for the official evaluation
+        save_for_evaluation(args.logdir, results_test, 'test')
+
 
     if args.do_infer:
         # To use recent corenlp: https://github.com/stanfordnlp/python-stanford-corenlp
