@@ -57,7 +57,7 @@ To tokenize English questions, `stanza` which is an open source for NLP publishe
 python annotate_tootouch.py --din $datadir --dout $savedir
 ```
 
-# Training Details
+# Training and Test Details
 
 **Hyperparameters**
 - Epochs : 50
@@ -77,8 +77,34 @@ python annotate_tootouch.py --din $datadir --dout $savedir
 - Max sequence length : 222
 - The number of target layer : 2
 
+**Test Setting**
+- Beam size : 4
+- Execution Guided Decoding : True
 
-# Result
+# History
+
+- Training History : https://tensorboard.dev/experiment/kdkw2wK1Q0elOYKhDK2RzA/
+
+- Blue : ko_token
+- Red : ko_token_not_h
+- Orange : ko_from_table
+
+**Train set**
+
+<div align='center'>
+    <img width="1462" alt="image" src="https://user-images.githubusercontent.com/37654013/116349345-c01ab280-a82a-11eb-93bb-bad641738fad.png">
+</div>
+
+
+**Dev set**
+
+<div align='center'>
+    <img width="1463" alt="image" src="https://user-images.githubusercontent.com/37654013/116349180-687c4700-a82a-11eb-956f-bc1e32409bc7.png">
+</div>
+
+
+# Results
+
 
 **Reproduction Test**
 
