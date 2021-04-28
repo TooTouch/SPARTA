@@ -4,8 +4,8 @@ import random
 import string
 import cx_Oracle
 
-tableIdx = "1-11112"
-table = "TRANSFER_SUMMARY"
+tableIdx = "1-11114"
+table = "DEVICEINFO"
 
 def getColumn(tableName):
     selectSql = "SELECT COLUMN_NAME FROM all_tab_columns WHERE 1=1 AND TABLE_NAME ='"+tableName+"' ORDER BY COLUMN_ID"    
