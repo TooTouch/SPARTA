@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
-data_dir="data/ko_token/"
-db_dir="data/ko_token/"
+data_dir="data/ko_from_table/"
+db_dir="data/ko_from_table/"
 dataset_name="wikisql"
 model="bridge"
 question_split="True"
