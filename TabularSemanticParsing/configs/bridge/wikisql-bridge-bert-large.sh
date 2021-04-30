@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
-data_dir="data/multi_wikisql1.1/"
-db_dir="data/multi_wikisql1.1/"
+data_dir="data/ko_from_table/"
+db_dir="data/ko_from_table/"
 dataset_name="wikisql"
 model="bridge"
 question_split="True"
@@ -32,7 +32,7 @@ program_vocab_min_freq=0
 max_in_seq_len=512
 max_out_seq_len=60
 
-num_steps=30000
+num_steps=10000
 curriculum_interval=0
 num_peek_steps=400
 num_accumulation_steps=3
@@ -77,7 +77,7 @@ ff_hidden_dropout_rate=0.0
 
 grad_norm=0.3
 decoding_algorithm="beam-search"
-beam_size=16
+beam_size=64
 bs_alpha=1.0
 
 data_parallel="False"

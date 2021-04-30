@@ -245,8 +245,12 @@ class LFramework(nn.Module):
                 metrics = eval_tools.get_exact_match_metrics(dev_data, output_dict['pred_decoded'], engine=engine)
                 dev_metrics_history.append(metrics)
 
-                eval_metrics = metrics['top_1_ex'] if self.args.dataset_name == 'wikisql' else metrics['top_1_em']
-                wandb.log({'dev_exact_match/{}'.format(self.dataset): eval_metrics})
+                # eval_metrics = metrics['top_1_ex'] if self.args.dataset_name == 'wikisql' else metrics['top_1_em']
+                eval_metrics_em = metrics['top_1_em'] 
+                eval_metrics_exe = metrics['top_1_ex']
+
+                wandb.log({'dev_exact_match/{}'.format(self.dataset): eval_metrics_em})
+                wandb.log({'dev_execution/{}'.format(self.dataset): eval_metrics_exe})
 
                 print('Dev set performance:')
                 print('Top-1 exact match: {}'.format(metrics['top_1_em']))
@@ -255,8 +259,8 @@ class LFramework(nn.Module):
                     print('Top-1 exe acc: {}'.format(metrics['top_1_ex']))
                     print('Top-3 exe acc: {}'.format(metrics['top_3_ex']))
 
-                if eval_metrics >= best_dev_metrics:
-                    best_dev_metrics = eval_metrics
+                if eval_metrics_exe >= best_dev_metrics:
+                    best_dev_metrics = eval_metrics_exe
                     self.save_checkpoint(step_id, step_id / num_peek_steps, output_dict['pred_decoded'], is_best=True)
                 if self.args.augment_with_wikisql and (step_id + 1) % (num_peek_steps * 3) == 0:
                     wikisql_output_dict = self.inference(dev_data_augment, inline_eval=True, verbose=False)
