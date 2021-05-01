@@ -4,8 +4,8 @@ import random
 import string
 import cx_Oracle
 
-tableIdx = "1-11114"
-table = "DEVICEINFO"
+tableIdx = "1-100000-10"
+table = "BANK"
 
 def getColumn(tableName):
     selectSql = "SELECT COLUMN_NAME FROM all_tab_columns WHERE 1=1 AND TABLE_NAME ='"+tableName+"' ORDER BY COLUMN_ID"    
@@ -80,8 +80,8 @@ def getTypes(tableName):
     return typeStr
 
 def createJson(tableName):
-    f = open("table.jsonl",'w')
-    tableStr = '"{id": "'+tableIdx+'", ' + getColumn(tableName) +" " +getTypes(tableName)+" " +getRows(tableName, None) +"}"
+    f = open("test2.tables.jsonl",'w')
+    tableStr = '{"id": "'+tableIdx+'", ' + getColumn(tableName) +", " +getTypes(tableName)+", " +getRows(tableName, None) +"}"
     f.write(tableStr)
     f.close()    
 
