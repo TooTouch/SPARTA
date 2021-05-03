@@ -168,6 +168,10 @@ def get_dataset_tag(args):
     dataset_tag = args.data_dir.split('/')[1] + '.'
     return dataset_tag
 
+def get_beamsize_tag(args):
+    beamsize_tag = f'bs_{str(args.beam_size)}.'
+    return beamsize_tag
+
 def get_wandb_group(args):
     pl_tag = get_picklist_tag(args)
     if args.read_picklist and args.num_const_attn_layers > 0:
@@ -178,15 +182,14 @@ def get_wandb_group(args):
     # ts_tag = get_table_shuffle_tag(args)
     # rfo_tag = get_random_field_order_tag(args)
     ds_tag = get_dataset_tag(args)
+    bs_tag = get_beamsize_tag(args)
     
     # return '{}{}{}{}{}{}{}{}-norm-digit-{}-{}-{}-{}-{}-{}-{}-{}'.format(
     #     pl_tag, le_tag, me_tag, ge_tag, ts_tag, ds_tag, rfo_tag, args.pretrained_transformer, args.encoder_hidden_dim,
     #     args.curriculum_interval, args.pretrained_lm_dropout_rate, args.learning_rate, args.learning_rate_scheduler,
     #     args.trans_learning_rate_scheduler, args.num_steps, args.num_warmup_steps)
-    return '{}{}{}-norm-digit-{}-{}-{}-{}-{}-{}-{}-{}'.format(
-        pl_tag, ds_tag, args.pretrained_transformer, args.encoder_hidden_dim,
-        args.curriculum_interval, args.pretrained_lm_dropout_rate, args.learning_rate, args.learning_rate_scheduler,
-        args.trans_learning_rate_scheduler, args.num_steps, args.num_warmup_steps)
+    return '{}{}{}{}-norm-digit-{}-{}-{}-{}'.format(
+        pl_tag, ds_tag, bs_tag, args.pretrained_transformer, args.encoder_hidden_dim,args.learning_rate, args.learning_rate_scheduler,args.num_steps)
 
 
 def get_wandb_tag(args):
@@ -281,7 +284,7 @@ def get_model_subdir(args, with_time_stamp=True):
     pl_tag = get_picklist_tag(args)
     if args.read_picklist and args.num_const_attn_layers > 0:
         pl_tag += '{}.'.format(args.num_const_attn_layers)
-    model_sub_dir = '{}.{}.{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}-{}'.format(
+    model_sub_dir = '{}.{}.{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}{}-{}'.format(
         dataset,
         get_model_tag(args),
         get_lstm_encoding_tag(args),
@@ -289,6 +292,7 @@ def get_model_subdir(args, with_time_stamp=True):
         get_graph_encoding_tag(args),
         get_table_shuffle_tag(args),
         get_dataset_tag(args),
+        get_beamsize_tag(args),
         pl_tag,
         get_value_tag(args),
         get_norm_tag(args),
@@ -297,17 +301,17 @@ def get_model_subdir(args, with_time_stamp=True):
         get_typed_token_tag(args),
         get_from_clause_tag(args),
         get_execution_order_tag(args),
-        get_oracle_table_tag(args),
-        get_random_table_tag(args),
-        get_atomic_value_tag(args),
-        get_random_field_order_tag(args),
-        get_data_augmentation_tag(args),
-        get_data_augmentation_with_wikisql_tag(args),
         get_schema_feature_tag(args),
         get_sample_gt_tag(args),
         initialization_tag,
         hyperparameter_sig
     )
+    # get_oracle_table_tag(args),
+    # get_random_table_tag(args),
+    # get_atomic_value_tag(args),
+    # get_random_field_order_tag(args),
+    # get_data_augmentation_tag(args),
+    # get_data_augmentation_with_wikisql_tag(args),
 
     if args.test:
         model_sub_dir += '.test'
@@ -355,6 +359,7 @@ def get_data_signature(args):
     ot_tag = get_oracle_table_tag(args)
     tokenizer_tag = get_tokenizer_tag(args)
     ds_tag = get_dataset_tag(args)
+    bs_tag = get_beamsize_tag(args)
 
     return '{}.{}.{}-split.{}{}{}{}{}{}{}{}{}{}{}{}{}{}'.format(
         args.dataset_name,
@@ -373,7 +378,8 @@ def get_data_signature(args):
         aug_wikisql_tag,
         ot_tag,
         tokenizer_tag,
-        ds_tag)
+        ds_tag,
+        bs_tag)
 
 
 def get_processed_data_path(args):
