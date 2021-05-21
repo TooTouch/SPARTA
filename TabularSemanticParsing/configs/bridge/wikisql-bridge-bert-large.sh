@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
-data_dir="data/ko_from_table/"
-db_dir="data/ko_from_table/"
+data_dir="data/ko"
+db_dir="data/ko"
 dataset_name="wikisql"
 model="bridge"
 question_split="True"

@@ -25,7 +25,7 @@ from torch.utils.tensorboard import SummaryWriter
 # BERT
 # import bert.tokenization as tokenization
 # from bert.modeling import BertConfig, BertModel
-from transformers import BertConfig, BertModel, BertTokenizer
+from transformers import BertConfig, BertModel, BertTokenizer, XLMRobertaConfig, XLMRobertaTokenizerFast, XLMRobertaModel
 from sqlova.model.nl2sql.wikisql_models import *
 
 from tqdm import tqdm
@@ -38,9 +38,12 @@ def construct_hyper_param(parser, notebook=False):
     parser.add_argument('--datadir', default='./data/ko_token/', type=str, help='data directory')
     parser.add_argument('--logdir', default='./logs/ko_token/', type=str, help='log directory')
     parser.add_argument("--do_train", default=False, action='store_true')
-    parser.add_argument("--do_train_try", default=False, action='store_true')
+    
     parser.add_argument('--do_dev', default=False, action='store_true')
     parser.add_argument('--do_test', default=False, action='store_true')
+
+    parser.add_argument('--topk_list', default=None, help='Top k list')
+
     parser.add_argument('--do_infer', default=False, action='store_true')
     parser.add_argument('--infer_loop', default=False, action='store_true')
 
@@ -63,7 +66,7 @@ def construct_hyper_param(parser, notebook=False):
     parser.add_argument("--bert_name", 
                         type=str, 
                         default='bert-base-uncased', 
-                        choices=['bert-base-multilingual-cased','bert-base-uncased'], 
+                        choices=['bert-base-multilingual-cased','bert-base-uncased','xlm-roberta-base'], 
                         help='bert pretrained model name')
     parser.add_argument("--max_seq_length",
                         default=222, type=int,  # Set based on maximum length of input tokens.
@@ -98,6 +101,10 @@ def construct_hyper_param(parser, notebook=False):
 
     args = parser.parse_args(args=[]) if notebook else parser.parse_args()
 
+    # top k
+    if args.topk_list!=None:
+        args.topk_list = list(map(int,args.topk_list.split(',')))
+
     # args.toy_model = not torch.cuda.is_available()
     args.toy_model = False
     args.toy_size = 12
@@ -106,12 +113,17 @@ def construct_hyper_param(parser, notebook=False):
 
 def get_bert(name, device):
     
-    # # huggingface 
-    bert_config = BertConfig.from_pretrained(name)
-    model_bert = BertModel.from_pretrained(name)
-    model_bert.config.output_hidden_states = True # return all hidden states
-    tokenizer = BertTokenizer.from_pretrained(name)
+    # huggingface 
+    if name == 'xlm-roberta-base':
+        bert_config = XLMRobertaConfig.from_pretrained(name)
+        model_bert = XLMRobertaModel.from_pretrained(name)
+        tokenizer = XLMRobertaTokenizerFast.from_pretrained(name)
+    else:
+        bert_config = BertConfig.from_pretrained(name)
+        model_bert = BertModel.from_pretrained(name)
+        tokenizer = BertTokenizer.from_pretrained(name)
     
+    model_bert.config.output_hidden_states = True # return all hidden states
     model_bert.to(device)
 
     return model_bert, tokenizer, bert_config
@@ -299,7 +311,7 @@ def train(train_loader, train_table, model, model_bert, opt, bert_config, tokeni
         # lx stands for logical form accuracy
 
         # Execution accuracy test.
-        cnt_x1_list, g_ans, pr_ans = get_cnt_x_list(engine, tb, g_sc, g_sa, sql_i, pr_sc, pr_sa, pr_sql_i)
+        cnt_x1_list, g_ans, pr_ans = get_cnt_x_list(engine, tb, sql_i, pr_sql_i)
 
         # statistics
         ave_loss += loss.item()
@@ -382,7 +394,7 @@ def report_detail(hds, nlu,
 def test(data_loader, data_table, model, model_bert, bert_config, tokenizer,
          max_seq_length,
          num_target_layers, detail=False, st_pos=0, cnt_tot=1, EG=False, beam_size=4,
-         path_db=None, dset_name='test', device='cpu'):
+         path_db=None, dset_name='test', device='cpu', k_lst=[1,2,3,5,10]):
     model.eval()
     model_bert.eval()
 
@@ -402,6 +414,14 @@ def test(data_loader, data_table, model, model_bert, bert_config, tokenizer,
 
     engine = DBEngine(os.path.join(path_db, f"{dset_name}.db"))
     results = []
+
+    #===================
+    # Top k
+    #=================== 
+    if k_lst!=None:
+        topk_x_acc = dict([(f'Top-{k} x',0) for k in k_lst])
+        topk_lx_acc = dict([(f'Top-{k} lx',0) for k in k_lst])
+
     for iB, t in enumerate(tqdm(data_loader, desc=f'{dset_name.upper()}', leave=True)):
 
         cnt += len(t)
@@ -440,7 +460,7 @@ def test(data_loader, data_table, model, model_bert, bert_config, tokenizer,
             s_sc, s_sa, s_wn, s_wc, s_wo, s_wv = model(wemb_n, l_n, wemb_h, l_hpu, l_hs)
 
             # get loss & step
-            loss = Loss_sw_se(s_sc, s_sa, s_wn, s_wc, s_wo, s_wv, g_sc, g_sa, g_wn, g_wc, g_wo, g_wvi)
+            loss = Loss_sw_se(s_sc, s_sa, s_wn, s_wc, s_wo, s_wv, g_sc, g_sa, g_wn, g_wc, g_wo, g_wvi, device=device)
 
             # prediction
             pr_sc, pr_sa, pr_wn, pr_wc, pr_wo, pr_wvi = pred_sw_se(s_sc, s_sa, s_wn, s_wc, s_wo, s_wv, )
@@ -449,12 +469,12 @@ def test(data_loader, data_table, model, model_bert, bert_config, tokenizer,
             pr_sql_i = generate_sql_i(pr_sc, pr_sa, pr_wn, pr_wc, pr_wo, pr_wv_str, nlu)
         else:
             # Execution guided decoding
-            prob_sca, prob_w, prob_wn_w, pr_sc, pr_sa, pr_wn, pr_sql_i = model.beam_forward(wemb_n, l_n, wemb_h, l_hpu,
-                                                                                            l_hs, engine, tb,
-                                                                                            nlu_t, nlu_tt,
-                                                                                            tt_to_t_idx, nlu,
-                                                                                            beam_size=beam_size,
-                                                                                            device=device)
+            prob_sca, prob_w, prob_wn_w, pr_sc, pr_sa, pr_wn, pr_sql_i, pr_sql_topk_i = model.beam_forward(wemb_n, l_n, wemb_h, l_hpu,
+                                                                                                          l_hs, engine, tb,
+                                                                                                          nlu_t, nlu_tt,
+                                                                                                          tt_to_t_idx, nlu,
+                                                                                                          beam_size=beam_size,
+                                                                                                          device=device)
             # sort and generate
             pr_wc, pr_wo, pr_wv, pr_sql_i = sort_and_generate_pr_w(pr_sql_i)
 
@@ -490,7 +510,7 @@ def test(data_loader, data_table, model, model_bert, bert_config, tokenizer,
         # lx stands for logical form accuracy
 
         # Execution accuracy test.
-        cnt_x1_list, g_ans, pr_ans = get_cnt_x_list(engine, tb, g_sc, g_sa, sql_i, pr_sc, pr_sa, pr_sql_i)
+        cnt_x1_list, g_ans, pr_ans = get_cnt_x_list(engine, tb, sql_i, pr_sql_i)
 
         # stat
         ave_loss += loss.item()
@@ -517,6 +537,14 @@ def test(data_loader, data_table, model, model_bert, bert_config, tokenizer,
                           pr_sc, pr_sa, pr_wn, pr_wc, pr_wo, pr_wv_str, pr_sql_q, pr_ans,
                           cnt_list1, current_cnt)
 
+        #===================
+        # Top k
+        #===================
+        if k_lst!=None:
+            topk_lx_acc, topk_x_acc = topk_acc(engine, beam_size, len(t), tb, topk_x_acc, topk_lx_acc, 
+                                               g_sc, g_sa, g_wn, g_wc, g_wo, g_wv, sql_i, pr_sql_topk_i)
+
+    # loss and accuracy
     ave_loss /= cnt
     acc_sc = cnt_sc / cnt
     acc_sa = cnt_sa / cnt
@@ -528,7 +556,19 @@ def test(data_loader, data_table, model, model_bert, bert_config, tokenizer,
     acc_lx = cnt_lx / cnt
     acc_x = cnt_x / cnt
 
-    acc = [ave_loss, acc_sc, acc_sa, acc_wn, acc_wc, acc_wo, acc_wvi, acc_wv, acc_lx, acc_x]
+    #===================
+    # Top k accuracy
+    #=================== 
+    if k_lst!=None:
+        for k in topk_lx_acc.keys():
+            topk_lx_acc[k] /= cnt
+
+        for k in topk_x_acc.keys():
+            topk_x_acc[k] /= cnt
+
+        acc = [ave_loss, acc_sc, acc_sa, acc_wn, acc_wc, acc_wo, acc_wvi, acc_wv, acc_lx, acc_x, topk_lx_acc, topk_x_acc]
+    else:
+        acc = [ave_loss, acc_sc, acc_sa, acc_wn, acc_wc, acc_wo, acc_wvi, acc_wv, acc_lx, acc_x]
     return acc, results, cnt_list
 
 
@@ -725,6 +765,7 @@ if __name__ == '__main__':
                                                       st_pos=0,
                                                       dset_name='dev', 
                                                       EG=args.EG,
+                                                      k_lst=args.topk_list,
                                                       device=device)
 
             print_result(epoch, acc_train, 'train')
@@ -796,13 +837,25 @@ if __name__ == '__main__':
                                                     st_pos=0,
                                                     dset_name='dev', 
                                                     EG=args.EG,
+                                                    k_lst=args.topk_list,
+                                                    beam_size=args.beam_size,
                                                     device=device)
-        print_result(-1, acc_test, 'do_dev')
+        
 
         # save evaluation 
         keys_lst = ['loss','acc_sc','acc_sa','acc_wn','acc_wc','acc_wo','acc_wvi','acc_wv','acc_lx','acc_x']
-        save_dict = dict([(keys_lst[i], acc_test[i]) for i in range(len(acc_test))])
-        json.dump(save_dict, open(os.path.join(args.logdir, 'dev_performance.json'),'w'), indent=4)
+        save_dict = dict([(keys_lst[i], acc_test[i]) for i in range(len(keys_lst))])
+        if args.topk_list!=None:
+            save_dict['topk_lx'] = acc_test[-2]
+            save_dict['topk_x'] = acc_test[-1]
+            print_result(-1, acc_test[:-2], 'do_dev')
+        else:
+            print_result(-1, acc_test, 'do_dev')
+
+        json.dump(save_dict, open(os.path.join(args.logdir, f'dev_performance_beamsize{args.beam_size}.json'),'w'), indent=4)
+
+        # save results for the official evaluation
+        save_for_evaluation(args.logdir, results_test, f'dev_beamsize{args.beam_size}')
 
 
     if args.do_test:
@@ -821,17 +874,26 @@ if __name__ == '__main__':
                                                     st_pos=0,
                                                     dset_name='test', 
                                                     EG=args.EG,
+                                                    k_lst=args.topk_list,
+                                                    beam_size=args.beam_size,
                                                     device=device)
 
-        print_result(-1, acc_test, 'test')
+        
 
         # save evaluation 
         keys_lst = ['loss','acc_sc','acc_sa','acc_wn','acc_wc','acc_wo','acc_wvi','acc_wv','acc_lx','acc_x']
-        save_dict = dict([(keys_lst[i], acc_test[i]) for i in range(len(acc_test))])
-        json.dump(save_dict, open(os.path.join(args.logdir, 'test_performance.json'),'w'), indent=4)
+        save_dict = dict([(keys_lst[i], acc_test[i]) for i in range(len(keys_lst))])
+        if args.topk_list!=None:
+            save_dict['topk_lx'] = acc_test[-2]
+            save_dict['topk_x'] = acc_test[-1]
+            print_result(-1, acc_test[:-2], 'test')
+        else:
+            print_result(-1, acc_test, 'test')
+        
+        json.dump(save_dict, open(os.path.join(args.logdir, f'test_performance_beamsize{args.beam_size}.json'),'w'), indent=4)
 
         # save results for the official evaluation
-        save_for_evaluation(args.logdir, results_test, 'test')
+        save_for_evaluation(args.logdir, results_test, f'test_beamsize{args.beam_size}')
 
 
     if args.do_infer:

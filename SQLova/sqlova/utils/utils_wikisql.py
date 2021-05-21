@@ -38,13 +38,57 @@ def torch_seed(random_seed: int = 223):
     rd.seed(random_seed)
     os.environ['PYTHONHASHSEED'] = str(random_seed)
 
+def topk_acc(engine, beam_size, bS, tb, topk_x_acc, topk_lx_acc, 
+             g_sc, g_sa, g_wn, g_wc, g_wo, g_wv, sql_i, pr_sql_topk_i):
+    
+    cnt_x = np.zeros(bS, dtype=np.int)
+    cnt_lx = np.zeros(bS, dtype=np.int)
+
+    for i in range(beam_size):
+        pr_sql_b = np.array(pr_sql_topk_i)[:,i]
+
+        pr_wc, pr_wo, pr_wv, pr_sql_i = sort_and_generate_pr_w(pr_sql_b)
+        pr_sc = [pr_sql['sel'] for pr_sql in pr_sql_b]
+        pr_sa = [pr_sql['agg'] for pr_sql in pr_sql_b]
+        pr_wn = [len(pr_sql['conds']) for pr_sql in pr_sql_b]
+
+        # where value index is None
+        g_wvi = None
+        pr_wvi = None
+
+        cnt_sc1_list, cnt_sa1_list, cnt_wn1_list, \
+        cnt_wc1_list, cnt_wo1_list, \
+        cnt_wvi1_list, cnt_wv1_list = get_cnt_sw_list(g_sc, g_sa, g_wn, g_wc, g_wo, g_wvi,
+                                                      pr_sc, pr_sa, pr_wn, pr_wc, pr_wo, pr_wvi,
+                                                      sql_i, pr_sql_b,
+                                                      mode='test')
+
+        # Logical Form
+        cnt_lx1_list = get_cnt_lx_list(cnt_sc1_list, cnt_sa1_list, cnt_wn1_list, cnt_wc1_list,
+                                       cnt_wo1_list, cnt_wv1_list)
+        cnt_lx += cnt_lx1_list
+        cnt_lx_k = sum(cnt_lx > 0)
+
+        if f'Top-{i+1} lx' in topk_lx_acc.keys():
+            topk_lx_acc[f'Top-{i+1} lx'] += cnt_lx_k
+
+        # Execution 
+        cnt_x1_list, _, _ = get_cnt_x_list(engine, tb, sql_i, pr_sql_b)
+        cnt_x += cnt_x1_list
+        cnt_x_k = sum(cnt_x > 0)
+
+        if f'Top-{i+1} x' in topk_x_acc.keys():
+            topk_x_acc[f'Top-{i+1} x'] += cnt_x_k
+            
+    return topk_lx_acc, topk_x_acc
+
 
 # Load data -----------------------------------------------------------------------------------------------
-def load_wikisql(path_wikisql, toy_model, toy_size, bert=False, no_w2i=False, no_hs_tok=False, aug=False):
+def load_wikisql(path_wikisql, toy_model, toy_size, no_tok=False, bert=False, no_w2i=False, no_hs_tok=False, aug=False):
     # Get data
-    train_data, train_table = load_wikisql_data(path_wikisql, mode='train', toy_model=toy_model, toy_size=toy_size, no_hs_tok=no_hs_tok, aug=aug)
-    dev_data, dev_table = load_wikisql_data(path_wikisql, mode='dev', toy_model=toy_model, toy_size=toy_size, no_hs_tok=no_hs_tok)
-
+    train_data, train_table = load_wikisql_data(path_wikisql, mode='train', toy_model=toy_model, toy_size=toy_size, no_tok=no_tok, no_hs_tok=no_hs_tok, aug=aug)
+    dev_data, dev_table = load_wikisql_data(path_wikisql, mode='dev', toy_model=toy_model, toy_size=toy_size, no_tok=no_tok, no_hs_tok=no_hs_tok)
+    test_data, test_table = load_wikisql_data(path_wikisql, mode='test', toy_model=toy_model, toy_size=toy_size, no_tok=no_tok, no_hs_tok=no_hs_tok)
 
     # Get word vector
     if no_w2i:
@@ -53,7 +97,7 @@ def load_wikisql(path_wikisql, toy_model, toy_size, bert=False, no_w2i=False, no
         w2i, wemb = load_w2i_wemb(path_wikisql, bert)
 
 
-    return train_data, train_table, dev_data, dev_table, w2i, wemb
+    return train_data, train_table, dev_data, dev_table, test_data, test_table, w2i, wemb
 
 
 def load_wikisql_data(path_wikisql, mode='train', toy_model=False, toy_size=10, no_tok=False, no_hs_tok=False, aug=False):
@@ -109,7 +153,7 @@ def load_w2i_wemb(path_wikisql, bert=False):
         wemb = load(os.path.join(path_wikisql, 'wemb.npy'), )
     return w2i, wemb
 
-def get_loader_wikisql(data_train, data_dev, bS, shuffle_train=True, shuffle_dev=False):
+def get_loader_wikisql(data_train, data_dev, data_test, bS, shuffle_train=True, shuffle_dev=False):
     train_loader = torch.utils.data.DataLoader(
         batch_size=bS,
         dataset=data_train,
@@ -126,7 +170,15 @@ def get_loader_wikisql(data_train, data_dev, bS, shuffle_train=True, shuffle_dev
         collate_fn=lambda x: x  # now dictionary values are not merged!
     )
 
-    return train_loader, dev_loader
+    test_loader = torch.utils.data.DataLoader(
+        batch_size=bS,
+        dataset=data_test,
+        shuffle=shuffle_dev,
+        num_workers=4,
+        collate_fn=lambda x: x
+    )
+
+    return train_loader, dev_loader, test_loader
 
 
 def get_fields_1(t1, tables, no_hs_t=False, no_sql_t=False):
@@ -499,10 +551,16 @@ def tokenize_hds1(tokenizer, hds1):
         hds_all_tok.append(sub_tok)
 
 def generate_inputs(tokenizer, nlu1_tok, hds1):
+    if '[CLS]' in tokenizer.all_special_tokens:
+        special_token = ['[CLS]','[SEP]']
+    else:
+        # RoBERTa
+        special_token = ['<s>','</s>']
+    
     tokens = []
     segment_ids = []
 
-    tokens.append("[CLS]")
+    tokens.append(special_token[0])
     i_st_nlu = len(tokens)  # to use it later
 
     segment_ids.append(0)
@@ -510,7 +568,7 @@ def generate_inputs(tokenizer, nlu1_tok, hds1):
         tokens.append(token)
         segment_ids.append(0)
     i_ed_nlu = len(tokens)
-    tokens.append("[SEP]")
+    tokens.append(special_token[1])
     segment_ids.append(0)
 
     i_hds = []
@@ -523,10 +581,10 @@ def generate_inputs(tokenizer, nlu1_tok, hds1):
         i_hds.append((i_st_hd, i_ed_hd))
         segment_ids += [1] * len(sub_tok)
         if i < len(hds1)-1:
-            tokens.append("[SEP]")
+            tokens.append(special_token[1])
             segment_ids.append(0)
         elif i == len(hds1)-1:
-            tokens.append("[SEP]")
+            tokens.append(special_token[1])
             segment_ids.append(1)
         else:
             raise EnvironmentError
@@ -621,7 +679,6 @@ def get_bert_output_s2s(model_bert, tokenizer, nlu_t, hds, sql_vocab, max_seq_le
         #         hds1_all_tok = tokenize_hds1(tokenizer, hds1)
 
 
-
         # [CLS] nlu [SEP] col1 [SEP] col2 [SEP] ...col-n [SEP]
         # 2. Generate BERT inputs & indices.
         # Combine hds1 and sql_vocab
@@ -633,7 +690,6 @@ def get_bert_output_s2s(model_bert, tokenizer, nlu_t, hds, sql_vocab, max_seq_le
         # Input masks
         # The mask has 1 for real tokens and 0 for padding tokens. Only real
         # tokens are attended to.
-        input_mask1 = [1] * len(input_ids1)
 
         # 3. Zero-pad up to the sequence length.
         l_input.append( len(input_ids1) )
@@ -733,8 +789,6 @@ def get_bert_output(model_bert, tokenizer, nlu_t, hds, max_seq_length, device='c
         l_n.append(len(nlu_tt1))
         #         hds1_all_tok = tokenize_hds1(tokenizer, hds1)
 
-
-
         # [CLS] nlu [SEP] col1 [SEP] col2 [SEP] ...col-n [SEP]
         # 2. Generate BERT inputs & indices.
         tokens1, segment_ids1, i_nlu1, i_hds1 = generate_inputs(tokenizer, nlu_tt1, hds1)
@@ -743,7 +797,10 @@ def get_bert_output(model_bert, tokenizer, nlu_t, hds, max_seq_length, device='c
         # Input masks
         # The mask has 1 for real tokens and 0 for padding tokens. Only real
         # tokens are attended to.
-        input_mask1 = [1] * len(input_ids1)
+        if '[CLS]' in tokenizer.all_special_tokens:
+            input_mask1 = [1] * len(input_ids1)
+        elif '<s>' in tokenizer.all_special_tokens:
+            input_mask1 = [0] * len(input_ids1)
 
         # 3. Zero-pad up to the sequence length.
         while len(input_ids1) < max_seq_length:
@@ -751,7 +808,7 @@ def get_bert_output(model_bert, tokenizer, nlu_t, hds, max_seq_length, device='c
             input_mask1.append(0)
             segment_ids1.append(0)
 
-        assert len(input_ids1) == max_seq_length
+        assert len(input_ids1) == max_seq_length, print(len(input_ids1), b)
         assert len(input_mask1) == max_seq_length
         assert len(segment_ids1) == max_seq_length
 
@@ -769,7 +826,9 @@ def get_bert_output(model_bert, tokenizer, nlu_t, hds, max_seq_length, device='c
     all_segment_ids = torch.tensor(segment_ids, dtype=torch.long).to(device)
 
     # 4. Generate BERT output.
-    embed = model_bert(all_input_ids, all_segment_ids, all_input_mask)
+    embed = model_bert(input_ids=all_input_ids, 
+                       attention_mask=all_segment_ids, 
+                       token_type_ids=all_input_mask)
     all_encoder_layer = embed[2][1:]
     pooled_output = embed[1]
 
@@ -921,7 +980,6 @@ def pred_sc_beam(s_sc, beam_size):
     # get g_num
     pr_sc_beam = []
 
-
     for s_sc1 in s_sc:
         val, idxes = s_sc1.topk(k=beam_size)
         pr_sc_beam.append(idxes.tolist())
@@ -1063,9 +1121,12 @@ def pred_wvi_se_beam(max_wn, s_wv, beam_size):
     prob_wv_st = F.softmax(s_wv_st, dim=-1).detach().to('cpu').numpy()
     prob_wv_ed = F.softmax(s_wv_ed, dim=-1).detach().to('cpu').numpy()
 
+    if s_wv_st.shape[-1] < beam_size:
+        beam_size = s_wv_st.shape[-1]
+    
     k_logit = int(ceil(sqrt(beam_size)))
     n_pairs = k_logit**2
-    assert n_pairs >= beam_size
+        
     values_st, idxs_st = s_wv_st.topk(k_logit) # [B, 4, mL] -> [B, 4, k_logit]
     values_ed, idxs_ed = s_wv_ed.topk(k_logit) # [B, 4, mL] -> [B, 4, k_logit]
 
@@ -1647,6 +1708,7 @@ def get_cnt_sw_list(g_sc, g_sa, g_wn, g_wc, g_wo, g_wvi,
     cnt_wn = get_cnt_sc_list(g_wn, pr_wn)
     cnt_wc = get_cnt_wc_list(g_wc, pr_wc)
     cnt_wo = get_cnt_wo_list(g_wn, g_wc, g_wo, pr_wc, pr_wo, mode)
+
     if pr_wvi:
         cnt_wvi = get_cnt_wvi_list(g_wn, g_wc, g_wvi, pr_wvi, mode)
     else:
@@ -1670,16 +1732,16 @@ def get_cnt_lx_list(cnt_sc1, cnt_sa1, cnt_wn1, cnt_wc1, cnt_wo1, cnt_wv1):
     return cnt_list
 
 
-def get_cnt_x_list(engine, tb, g_sc, g_sa, g_sql_i, pr_sc, pr_sa, pr_sql_i):
+def get_cnt_x_list(engine, tb, g_sql_i, pr_sql_i):
     cnt_x1_list = []
     g_ans = []
     pr_ans = []
-    for b in range(len(g_sc)):
-        g_ans1 = engine.execute(tb[b]['id'], g_sc[b], g_sa[b], g_sql_i[b]['conds'])
+    for b in range(len(g_sql_i)):
+        g_ans1 = engine.execute(tb[b]['id'], g_sql_i[b]['sel'], g_sql_i[b]['agg'], g_sql_i[b]['conds'])
         # print(f'cnt: {cnt}')
         # print(f"pr_sql_i: {pr_sql_i[b]['conds']}")
         try:
-            pr_ans1 = engine.execute(tb[b]['id'], pr_sc[b], pr_sa[b], pr_sql_i[b]['conds'])
+            pr_ans1 = engine.execute(tb[b]['id'], pr_sql_i[b]['sel'], pr_sql_i[b]['agg'], pr_sql_i[b]['conds'])
 
             if bool(pr_ans1):  # not empty due to lack of the data from incorretly generated sql
                 if g_ans1 == pr_ans1:
@@ -1757,7 +1819,7 @@ def save_for_evaluation_aux(path_save, results, dset_name, ):
             f.writelines(json_str)
 
 
-def check_sc_sa_pairs(tb, pr_sc, pr_sa, ):
+def check_sc_sa_pairs(tb, pr_sc, pr_sa):
     """
     Check whether pr_sc, pr_sa are allowed pairs or not.
     agg_ops = ['', 'MAX', 'MIN', 'COUNT', 'SUM', 'AVG']
@@ -1765,7 +1827,11 @@ def check_sc_sa_pairs(tb, pr_sc, pr_sa, ):
     """
     bS = len(pr_sc)
     check = [False] * bS
+    
     for b, pr_sc1 in enumerate(pr_sc):
+        if len(tb[b]['types']) <= pr_sc1:
+            check[b] = False
+            continue
         pr_sa1 = pr_sa[b]
         hd_types1 = tb[b]['types']
         hd_types11 = hd_types1[pr_sc1]

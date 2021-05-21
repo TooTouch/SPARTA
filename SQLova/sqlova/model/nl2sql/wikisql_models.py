@@ -88,14 +88,14 @@ class Seq2SQL_v1(nn.Module):
 
     def beam_forward(self, wemb_n, l_n, wemb_hpu, l_hpu, l_hs, engine, tb,
                      nlu_t, nlu_wp_t, wp_to_wh_index, nlu,
-                     beam_size=4,
+                     beam_size=4, 
                      show_p_sc=False, show_p_sa=False,
                      show_p_wn=False, show_p_wc=False, show_p_wo=False, show_p_wv=False, device='cpu'):
         """
         Execution-guided beam decoding.
         """
         # sc
-        s_sc = self.scp(wemb_n, l_n, wemb_hpu, l_hpu, l_hs, show_p_sc=show_p_sc)
+        s_sc = self.scp(wemb_n, l_n, wemb_hpu, l_hpu, l_hs, show_p_sc=False)
         prob_sc = F.softmax(s_sc, dim=-1)
         bS, mcL = s_sc.shape
 
@@ -103,17 +103,23 @@ class Seq2SQL_v1(nn.Module):
         # beam_size = minimum_hs_length if beam_size > minimum_hs_length else beam_size
 
         # sa
+        if mcL < beam_size:
+            beam_size_mcL = mcL
+        else:
+            beam_size_mcL = beam_size
+            
         # Construct all possible sc_sa_score
-        prob_sc_sa = torch.zeros([bS, beam_size, self.n_agg_ops]).to(device)
+        prob_sc_sa = torch.zeros([bS, beam_size_mcL, self.n_agg_ops]).to(device)
         prob_sca = torch.zeros_like(prob_sc_sa).to(device)
 
         # get the top-k indices.  pr_sc_beam = [B, beam_size]
-        pr_sc_beam = pred_sc_beam(s_sc, beam_size)
+        
+        pr_sc_beam = pred_sc_beam(s_sc, beam_size_mcL)
 
         # calculate and predict s_sa.
-        for i_beam in range(beam_size):
+        for i_beam in range(beam_size_mcL):
             pr_sc = list( array(pr_sc_beam)[:,i_beam] )
-            s_sa = self.sap(wemb_n, l_n, wemb_hpu, l_hpu, l_hs, pr_sc, show_p_sa=show_p_sa)
+            s_sa = self.sap(wemb_n, l_n, wemb_hpu, l_hpu, l_hs, pr_sc, show_p_sa=False)
             prob_sa = F.softmax(s_sa, dim=-1)
             prob_sc_sa[:, i_beam, :] = prob_sa
 
@@ -126,11 +132,15 @@ class Seq2SQL_v1(nn.Module):
         # tot_dim = len(prob_sca.shape)
 
         # First flatten to 1-d
-        idxs = topk_multi_dim(torch.tensor(prob_sca), n_topk=beam_size, batch_exist=True)
+        if np.prod(prob_sca.shape[1:]) < beam_size:
+            beam_size_sca = np.prod(prob_sca.shape[1:])
+        else:
+            beam_size_sca = beam_size
+        idxs_s, values_s = topk_multi_dim(torch.tensor(prob_sca), n_topk=beam_size_sca, batch_exist=True)
         # Now as sc_idx is already sorted, re-map them properly.
 
-        idxs = remap_sc_idx(idxs, pr_sc_beam) # [sc_beam_idx, sa_idx] -> [sc_idx, sa_idx]
-        idxs_arr = array(idxs)
+        idxs_s = remap_sc_idx(idxs_s, pr_sc_beam) # [sc_beam_idx, sa_idx] -> [sc_idx, sa_idx]
+        idxs_arr = array(idxs_s)
         # [B, beam_size, remainig dim]
         # idxs[b][0] gives first probable [sc_idx, sa_idx] pairs.
         # idxs[b][1] gives of second.
@@ -152,7 +162,7 @@ class Seq2SQL_v1(nn.Module):
                 for b, check1 in enumerate(check):
                     if not check1: # wrong pair
                         beam_idx_sca[b] += 1
-                        if beam_idx_sca[b] >= beam_size:
+                        if beam_idx_sca[b] >= beam_size_sca:
                             beam_meet_the_final[b] = True
                             beam_idx_sca[b] -= 1
                     else:
@@ -167,12 +177,12 @@ class Seq2SQL_v1(nn.Module):
         pr_sa_best = list(pr_sa)
 
         # Now, Where-clause beam search.
-        s_wn = self.wnp(wemb_n, l_n, wemb_hpu, l_hpu, l_hs, show_p_wn=show_p_wn)
+        s_wn = self.wnp(wemb_n, l_n, wemb_hpu, l_hpu, l_hs, show_p_wn=False)
         prob_wn = F.softmax(s_wn, dim=-1).detach().to('cpu').numpy()
 
         # Found "executable" most likely 4(=max_num_of_conditions) where-clauses.
         # wc
-        s_wc = self.wcp(wemb_n, l_n, wemb_hpu, l_hpu, l_hs, show_p_wc=show_p_wc, penalty=True)
+        s_wc = self.wcp(wemb_n, l_n, wemb_hpu, l_hpu, l_hs, show_p_wc=False, penalty=True)
         prob_wc = F.sigmoid(s_wc).detach().to('cpu').numpy()
         # pr_wc_sorted_by_prob = pred_wc_sorted_by_prob(s_wc)
 
@@ -185,7 +195,7 @@ class Seq2SQL_v1(nn.Module):
 
         # get most probable max_wn where-clouses
         # wo
-        s_wo_max = self.wop(wemb_n, l_n, wemb_hpu, l_hpu, l_hs, wn=pr_wn_max, wc=pr_wc_max, show_p_wo=show_p_wo)
+        s_wo_max = self.wop(wemb_n, l_n, wemb_hpu, l_hpu, l_hs, wn=pr_wn_max, wc=pr_wc_max, show_p_wo=False)
         prob_wo_max = F.softmax(s_wo_max, dim=-1).detach().to('cpu').numpy()
         # [B, max_wn, n_cond_op]
 
@@ -194,7 +204,7 @@ class Seq2SQL_v1(nn.Module):
         for i_op  in range(self.n_cond_ops-1):
             pr_wo_temp = [ [i_op]*self.max_wn ]*bS
             # wv
-            s_wv = self.wvp(wemb_n, l_n, wemb_hpu, l_hpu, l_hs, wn=pr_wn_max, wc=pr_wc_max, wo=pr_wo_temp, show_p_wv=show_p_wv)
+            s_wv = self.wvp(wemb_n, l_n, wemb_hpu, l_hpu, l_hs, wn=pr_wn_max, wc=pr_wc_max, wo=pr_wo_temp, show_p_wv=False)
             prob_wv = F.softmax(s_wv, dim=-2).detach().to('cpu').numpy()
 
             # prob_wv
@@ -223,12 +233,17 @@ class Seq2SQL_v1(nn.Module):
         # Perform execution guided decoding
         conds_max = []
         prob_conds_max = []
-        # while len(conds_max) < self.max_wn:
-        idxs = topk_multi_dim(torch.tensor(prob_w), n_topk=beam_size, batch_exist=True)
+
+        if 4 < beam_size:
+            beam_size_w = 4
+        else:
+            beam_size_w = beam_size
+            
+        idxs_w, values_w = topk_multi_dim(torch.tensor(prob_w), n_topk=beam_size_w, batch_exist=True)
         # idxs = [B, i_wc_beam, i_op, i_wv_pairs]
 
         # Construct conds1
-        for b, idxs1 in enumerate(idxs):
+        for b, idxs1 in enumerate(idxs_w):
             conds_max1 = []
             prob_conds_max1 = []
             for i_wn, idxs11 in enumerate(idxs1):
@@ -244,13 +259,12 @@ class Seq2SQL_v1(nn.Module):
                 prob_conds11 = prob_w[b, idxs11[0], idxs11[1], idxs11[2] ]
 
                 # test execution
-                # print(nlu[b])
-                # print(tb[b]['id'], tb[b]['types'], pr_sc[b], pr_sa[b], [conds11])
                 pr_ans = engine.execute(tb[b]['id'], pr_sc[b], pr_sa[b], [conds11])
                 if bool(pr_ans):
                     # pr_ans is not empty!
                     conds_max1.append(conds11)
                     prob_conds_max1.append(prob_conds11)
+
             conds_max.append(conds_max1)
             prob_conds_max.append(prob_conds_max1)
 
@@ -260,10 +274,11 @@ class Seq2SQL_v1(nn.Module):
         # Calculate total probability to decide the number of where-clauses
         pr_sql_i = []
         prob_wn_w = []
-        pr_wn_based_on_prob = []
+        pr_wn_based_on_prob = []     
 
         for b, prob_wn1 in enumerate(prob_wn):
             max_executable_wn1 = len( conds_max[b] )
+
             prob_wn_w1 = []
             prob_wn_w1.append(prob_wn1[0])  # wn=0 case.
             for i_wn in range(max_executable_wn1):
@@ -274,8 +289,64 @@ class Seq2SQL_v1(nn.Module):
 
             pr_sql_i1 = {'agg': pr_sa_best[b], 'sel': pr_sc_best[b], 'conds': conds_max[b][:pr_wn_based_on_prob[b]]}
             pr_sql_i.append(pr_sql_i1)
-        # s_wv = [B, max_wn, max_nlu_tokens, 2]
-        return prob_sca, prob_w, prob_wn_w, pr_sc_best, pr_sa_best, pr_wn_based_on_prob, pr_sql_i
+
+
+        #=================
+        # top k 
+        #=================
+        
+        beam_size_sca = idxs_arr.shape[1]
+        pr_sc_topk = np.zeros((bS, beam_size_sca), dtype=np.int)
+        for i in range(beam_size_sca):
+            pr_sc_i = idxs_arr[range(bS),i,0]
+            pr_sa_i = idxs_arr[range(bS),i,1]
+
+            # map index properly
+
+            check = check_sc_sa_pairs(tb, pr_sc_i, pr_sa_i)
+
+            for b, check_b in enumerate(check):
+                if check_b: # wrong pair
+                    pr_sc_topk[b][i] += 1
+
+        values_s = values_s * pr_sc_topk
+
+        total_prob = np.zeros((bS, beam_size_sca, 5))
+
+        for b, prob_wn1 in enumerate(prob_wn):
+            max_executable_wn1 = len( conds_max[b] )
+            prob_wn_w1 = []
+            prob_wn_w1.append(prob_wn1[0])  # wn=0 case.
+
+            for sc_sa_idx, i_sc_sa in enumerate(values_s[b]):
+                total_prob[b][sc_sa_idx][0] = i_sc_sa * prob_wn1[0] # wn=0 case.
+
+                for w_idx, i_wn in enumerate(range(max_executable_wn1)):
+
+                    prob_wn_w11 = prob_wn1[i_wn+1] * prob_conds_max[b][i_wn]
+
+                    total_prob[b][sc_sa_idx][i_wn+1] = i_sc_sa * prob_wn_w11
+
+        if np.prod(total_prob.shape[1:]) < beam_size:
+            beam_size_total = np.prod(total_prob.shape[1:])
+        else:
+            beam_size_total = beam_size
+        idx_total, values_total = topk_multi_dim(torch.tensor(total_prob), n_topk=beam_size_total, batch_exist=True)
+
+        # top k sql
+        pr_sql_topk = []
+        for b, idx in enumerate(idx_total):
+            pr_sql_topk_i = []
+            for k, idx_k in enumerate(idx):
+                pr_sql_k = {'agg': idxs_arr[b][idx_k[0]][1], 
+                            'sel': idxs_arr[b][idx_k[0]][0], 
+                            'conds': conds_max[b][:idx_k[1]]}
+
+                pr_sql_topk_i.append(pr_sql_k)
+
+            pr_sql_topk.append(pr_sql_topk_i)
+            
+        return prob_sca, prob_w, prob_wn_w, pr_sc_best, pr_sa_best, pr_wn_based_on_prob, pr_sql_i, pr_sql_topk
 
 class SCP(nn.Module):
     def __init__(self, iS=300, hS=100, lS=2, dr=0.3, device='cpu'):

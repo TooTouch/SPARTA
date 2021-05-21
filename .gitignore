@@ -139,6 +139,7 @@ wandb/
 sqlova_custom
 SQLova/corenlp
 !SQLova/sqlova/model/  
+old/
 
 # model
 *.pt 
