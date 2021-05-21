@@ -27,6 +27,7 @@ def topk_multi_dim(tensor, n_topk=1, batch_exist=True):
 
     if batch_exist:
         idxs = []
+        values = []
         for b, tensor1 in enumerate(tensor):
             idxs1 = []
             tensor1_1d = tensor1.reshape(-1)
@@ -41,13 +42,19 @@ def topk_multi_dim(tensor, n_topk=1, batch_exist=True):
                     idxs11.append(idxs_list1[i_beam])
                 idxs1.append(idxs11)
             idxs.append(idxs1)
+            values.append(values_1d.cpu().numpy())
 
     else:
         tensor1 = tensor
         idxs1 = []
+        values1 = []
+
         tensor1_1d = tensor1.reshape(-1)
         values_1d, idxs_1d = tensor1_1d.topk(k=n_topk)
         idxs_list = unravel_index(idxs_1d.numpy(), tensor1.shape)
+
+        values1.append(values_1d.cpu().numpy())
+
         # (dim0, dim1, dim2, ...)
 
         # reconstruct
@@ -57,7 +64,9 @@ def topk_multi_dim(tensor, n_topk=1, batch_exist=True):
                 idxs11.append(idxs_list1[i_beam])
             idxs1.append(idxs11)
         idxs = idxs1
-    return idxs
+        values = values1
+
+    return idxs, np.array(values)
 
 
 def json_default_type_checker(o):

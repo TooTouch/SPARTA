@@ -24,7 +24,7 @@ def replace_value_with_h_wv(data: list, tables: dict, header: bool = True):
     h_in_q_lst: list, header used in question of data point
     """
     total_wv_in_q_lst = [] # total where value in question
-    h_in_q_lst = [] # header in question
+    h_in_q_lst = [] # header in question 
     for idx, d in enumerate(data):
         # where value
         wv_in_q_lst = []
@@ -49,7 +49,7 @@ def replace_value_with_h_wv(data: list, tables: dict, header: bool = True):
                 2: '이',
                 3: '삼'
             } 
-            question = question[:start_idx] + f'[값{number_dict[i]}]' + question[start_idx+len(wv):]
+            question = question[:start_idx] + f'[똥{number_dict[i]}]' + question[start_idx+len(wv):]
             wv_in_q_lst.append(wv_in_q)
 
 
@@ -67,7 +67,7 @@ def replace_value_with_h_wv(data: list, tables: dict, header: bool = True):
             h_in_q = d['question'][start_idx:start_idx+len(h)]
             
             # replace header in question with [H]
-            data[idx]['question'] = data[idx]['question'][:start_idx] + '[이름]' + data[idx]['question'][start_idx+len(h):]
+            data[idx]['question'] = data[idx]['question'][:start_idx] + '[허]' + data[idx]['question'][start_idx+len(h):]
             
             h_in_q_lst.append(h_in_q)
         else:
@@ -77,21 +77,21 @@ def replace_value_with_h_wv(data: list, tables: dict, header: bool = True):
     
     return data, total_wv_in_q_lst, h_in_q_lst
 
-def replace_value_with_v_from_table(data: list, tables: dict): # TODO
+def replace_value_with_v_from_table(data: list, tables: dict, header: bool = False):
     """
-    Replace header and where-values in question into token value
+    Replace header and where-values in question into token value from table
 
     Arguments
     ---------
     data: list, data list 
     tables: dict, tables infomation
+    header: bool, whether include header token or not
 
     Returns
     -------
-    data: list, questions with token of header and values
-    total_wv_in_q_lst: list, values used in question of data point
+    data: list, questions with token of header and where-values
+    total_v_in_q: list, values used in question of data point
     """
-    # check numeric value
     def is_number(s):
         try:
             float(s)
@@ -107,56 +107,98 @@ def replace_value_with_v_from_table(data: list, tables: dict): # TODO
             pass
         return False
 
-    total_v_in_q_lst = [] # table values in question
-    for idx, d in enumerate(data):
-        # where value
-        v_in_q_lst = []
+    number_dict = {
+        0: '영',
+        1: '일',
+        2: '이',
+        3: '삼',
+        4: '사',
+        5: '오',
+        6: '육',
+        7: '칠',
+        8: '팔',
+    } 
+
+    total_v_in_q = {'v':[], 'h':[]}
+
+    # from where-value
+    for wv_idx, d in enumerate(data):
+        wv_in_q_lst = []
         question = d['question']
-        value_lst = set(sum(tables[d['table_id']]['rows'], []))
-        find_idx = 0
-        for i, v in enumerate(value_lst):
-            if not is_number(v):
-                v = str(v) # value in table
-                if v.lower() in question.lower():
-
-                    # find start index
-                    start_idx = question.lower().find(v.lower())
-
-                    # value is not in question
-                    if start_idx==-1:
-                        continue 
-
-                    prev_next_p1 = question[start_idx-1:start_idx+len(v)+1].lower().strip()
-
-                    # v_in_q is table value in question
-                    v_in_q = question[start_idx:start_idx+len(v)]
-                    
-                    # replace where value in question with [V{idx}]
-                    number_dict = {
-                        0: '영',
-                        1: '일',
-                        2: '이',
-                        3: '삼',
-                        4: '사',
-                        5: '오',
-                        6: '육',
-                        7: '칠', # 7까지 확인 in test set
-                        8: '팔'
-                    } 
-                    if (start_idx!=0) and ((prev_next_p1 == v.lower()) or ('?' in prev_next_p1) or (',' in prev_next_p1)):
-                        question = question[:start_idx] + f'[값{number_dict[find_idx]}]' + question[start_idx+len(v):]
-
-                        # append in value list in question i th
-                        v_in_q_lst.append(v_in_q)
-
-                        # find + 1
-                        find_idx += 1
-
-        data[idx]['question'] = question
         
-        total_v_in_q_lst.append(v_in_q_lst)
+        # loop conditions
+        for i, c in enumerate(d['sql']['conds']):
+            wv = str(c[2])
+            
+            # find start index
+            start_idx = question.lower().find(wv.lower())
+
+            if start_idx == -1:
+                continue
+            
+            # where value in question
+            wv_in_q = question[start_idx:start_idx+len(wv)]
+
+            # replace where value token
+            question = question[:start_idx] + f'[똥{number_dict[i]}]' + question[start_idx+len(wv):]
+
+            # insert new question
+            data[wv_idx]['question'] = question
+            wv_in_q_lst.append(wv_in_q)
+
+        total_v_in_q['v'].append(wv_in_q_lst)
     
-    return data, total_v_in_q_lst
+
+    # from table
+    for t_idx, d in enumerate(data):
+        v_in_q_lst = total_v_in_q['v'][t_idx]
+        question = d['question']
+        
+        # unique values in table
+        value_lst = set(sum(tables[d['table_id']]['rows'], []))
+
+        # index
+        find_idx = len(v_in_q_lst)
+
+        # loop unique values
+        for i, v in enumerate(value_lst):
+            # only string value
+            if not is_number(v):
+                if v.lower() in question.lower():
+                    # find start index of table value
+                    start_idx = question.lower().find(v.lower())
+                    # 단어 검사
+                    prev_next_p1 = question[start_idx-1:start_idx+len(v)+1].lower().strip()
+                    if (start_idx!=0) and ((prev_next_p1 == v.lower()) or ('?' in prev_next_p1) or (',' in prev_next_p1)):
+                        # insert value token
+                        question = question[:start_idx] + f'[똥{number_dict[find_idx]}]' + question[start_idx + len(v):]
+                        v_in_q_lst.append(v)
+                        find_idx+=1
+                        
+        if header:
+            headers = tables[d['table_id']]['header']
+            
+            h_in_q_lst = []
+            for i, h in enumerate(headers):
+                if h.lower() in question.lower():
+                    # find start index of header
+                    start_idx = question.lower().find(h.lower())
+                    
+                    # header in question
+                    h_in_q = question[start_idx:start_idx+len(h)]
+                    
+                    
+                    # insert header token
+                    question = question[:start_idx] + f'[허{number_dict[len(h_in_q_lst)]}]' + question[start_idx+len(h):]
+                    h_in_q_lst.append(h_in_q)
+
+
+            total_v_in_q['h'].append(h_in_q_lst)
+            
+        data[t_idx]['question'] = question
+        total_v_in_q['v'][t_idx] = v_in_q_lst
+        
+    return data, total_v_in_q
     
 
 def extract_question(name: str, data: list, savedir: str): 
@@ -189,6 +231,8 @@ def save_token_question_and_info(name: str, datadir: str, savedir: str, header: 
     name: str, dataset name ['train','dev','test']
     datadir: str, saved data directory
     savedir: str, directory to save data
+    header: bool, whether include header token or not
+    from_table: bool, whether find values from table
     """
     
     token_info = {name:{}}
@@ -196,11 +240,12 @@ def save_token_question_and_info(name: str, datadir: str, savedir: str, header: 
     data, tables = load_wikisql_data(path_wikisql=datadir, mode=name, no_tok=True, no_hs_tok=True)
     # transform
     if from_table:
-        data_with_token, total_wv_in_q_lst = replace_value_with_v_from_table(data=deepcopy(data), tables=tables)    
+        data_with_token, total_in_q_dict = replace_value_with_v_from_table(data=deepcopy(data), tables=tables, header=header)    
         # save
         extract_question(name=name, data=data_with_token, savedir=savedir)
 
-        token_info[name]['v'] = total_wv_in_q_lst
+        token_info[name]['v'] = total_in_q_dict['v']
+        token_info[name]['h'] = total_in_q_dict['h']
     else:
         data_with_token, total_wv_in_q_lst, h_in_q_lst = replace_value_with_h_wv(data=deepcopy(data), tables=tables, header=header)
         # save
@@ -213,7 +258,7 @@ def save_token_question_and_info(name: str, datadir: str, savedir: str, header: 
     print(f'Complete {name.upper()}')
 
 
-def insert_replace_v_with_value_from_table(name: str, datadir:str, savedir: str):
+def insert_replace_v_with_value_from_table(name: str, datadir:str, savedir: str, header: bool):
     """
     Insert Korean questions in data
 
@@ -222,6 +267,7 @@ def insert_replace_v_with_value_from_table(name: str, datadir:str, savedir: str)
     name: str, dataset name ['train','dev','test']
     datadir: str, saved data directory
     savedir: str, directory to save file
+    header: bool, whether include header token or not
     """
     # define path to save file
     ko_filepath = os.path.join(savedir,f'ko_{name}_question.txt')
@@ -252,10 +298,26 @@ def insert_replace_v_with_value_from_table(name: str, datadir:str, savedir: str)
                     4: '사',
                     5: '오',
                     6: '육',
-                    7: '칠', # 7까지 확인
-                    8: '팔'
+                    7: '칠', 
+                    8: '팔' # 8까지 확인
                 } 
-                ko_question[idx] = ko_question[idx].replace(f'[값{number_dict[i]}]', v)
+                ko_question[idx] = ko_question[idx].replace(f'[똥{number_dict[i]}]', v)
+
+        if header:
+            if token_info[name]['h'][idx] != []:
+                for i, h in enumerate(token_info[name]['h'][idx]):
+                    number_dict = {
+                        0: '영',
+                        1: '일',
+                        2: '이',
+                        3: '삼',
+                        4: '사',
+                        5: '오',
+                        6: '육',
+                        7: '칠', 
+                        8: '팔' 
+                    } 
+                    ko_question[idx] = ko_question[idx].replace(f'[허{number_dict[i]}]', h)
                  
     # insert Korean questions in data
     for i in range(len(data)):
@@ -277,6 +339,7 @@ def insert_replace_h_wv_with_value(name: str, datadir:str, savedir: str, header:
     name: str, dataset name ['train','dev','test']
     datadir: str, saved data directory
     savedir: str, directory to save file
+    header: bool, whether include header token or not
     """
     # define path to save file
     ko_filepath = os.path.join(savedir,f'ko_{name}_question.txt')
@@ -297,8 +360,8 @@ def insert_replace_h_wv_with_value(name: str, datadir:str, savedir: str, header:
 
     # replace token with values
     for idx, d in enumerate(ko_question):
-        if ('[이름]' in d) and (header):
-            ko_question[idx] = ko_question[idx].replace('[이름]', token_info[name]['h'][idx])
+        if ('[허]' in d) and (header):
+            ko_question[idx] = ko_question[idx].replace('[허]', token_info[name]['h'][idx])
 
         if token_info[name]['wv'][idx] != []:
             for i, wv in enumerate(token_info[name]['wv'][idx]):
@@ -308,7 +371,7 @@ def insert_replace_h_wv_with_value(name: str, datadir:str, savedir: str, header:
                     2: '이',
                     3: '삼'
                 }
-                ko_question[idx] = ko_question[idx].replace(f'[값{number_dict[i]}]', wv)
+                ko_question[idx] = ko_question[idx].replace(f'[똥{number_dict[i]}]', wv)
                  
     # insert Korean questions in data
     for i in range(len(data)):
@@ -344,7 +407,7 @@ if __name__=='__main__':
     elif args.replace == 'token':
         for name in dataset_names:
             if args.from_table:
-                insert_replace_v_with_value_from_table(name=name, datadir=args.datadir, savedir=args.savedir)    
+                insert_replace_v_with_value_from_table(name=name, datadir=args.datadir, savedir=args.savedir, header=args.header)    
             else:
                 insert_replace_h_wv_with_value(name=name, datadir=args.datadir, savedir=args.savedir, header=args.header)
 
