@@ -9,7 +9,7 @@
 {"phase": 1,"table_id": "1-100000-2","question": "CUSTOMER_VINTAGE_GROUP가 VG2인 고객의 AGE 평균은?","sql": {"sel": 1,"conds": [[3, 0, "VG2"]],"agg": 5}}
 {"phase": 1,"table_id": "1-100000-2","question": "CUST_ID 가 CC56494인 고객의 CUSTOMER_VINTAGE_GROUP은?","sql": {"sel": 3,"conds": [[0, 0, "CC56494"]],"agg": 0}}
 {"phase": 1,"table_id": "1-100000-3","question": "NO가 2이고 AGE가 71인 고객이 살고 있는 CITY는?","sql": {"sel": 3,"conds": [[0, 0, "3"],[2, 0, "71"]],"agg": 0}}
-{"phase": 1,"table_id": "1-100000-3","question": "NO가 13이고 AGE가 29인 고객의 COMPANY를 알려줘","sql": {"sel": 6,"conds": [[0, 0, "3"],[2, 0, "71"]],"agg": 0}}
+{"phase": 1,"table_id": "1-100000-3","question": "NO가 13이고 AGE가 29인 고객의 COMPANY를 알려줘","sql": {"sel": 6,"conds": [[0, 0, "3"],[13, 0, "29"]],"agg": 0}}
 {"phase": 1,"table_id": "1-100000-3","question": "CITY가 PATNA에 사는 고객의 평균 AGE는?","sql": {"sel": 2,"conds": [[3, 0, "PATNA"]],"agg": 5}}
 {"phase": 1,"table_id": "1-100000-3","question": "AGE가 50 이상인 고객의 평균 CREDIT_LIMIT 값을 알려줘","sql": {"sel": 5,"conds": [[2, 1, "50"]],"agg": 5}}
 {"phase": 1,"table_id": "1-100000-3","question": "CREDIT_LIMIT 값이 300000 이상인 고객의 평균 AGE를 알려줘","sql": {"sel": 2,"conds": [[5, 1, "300000"]],"agg": 5}}
@@ -28,7 +28,7 @@
 {"phase": 1,"table_id": "1-100000-6","question": "CREDIT_CARD_ID가 5583-9751-6086-5673 일때, TRANSACTION_VALUE의 평균값을 알려줘","sql": {"sel": 3,"conds": [[2, 0, "5583-9751-6086-5673"]],"agg": 5}}
 {"phase": 1,"table_id": "1-100000-6","question": "TRANSACTION_SEGMENT가 SEG19일때, TRANSACTION_VALUE의 평균값을 알려줘","sql": {"sel": 3,"conds": [[4, 0, "SEG19"]],"agg": 5}}
 {"phase": 1,"table_id": "1-100000-6","question": "TRANSACTION_ID가 CTID50637354이고 CREDIT_CARD_ID가 9356-9491-6534-8313 일때, TRANSACTION_DATE는?","sql": {"sel": 1,"conds": [[0, 0, "CTID50637354"],[2, 0, "9356-9491-6534-8313"]],"agg": 0}}
-{"phase": 1,"table_id": "1-100000-7","question": "5009060 ID의 NAME_INCOME_TYPE은?","sql": {"sel": 6,"conds": [[0, 0, "5009060"]],"agg": 0}}
+{"phase": 1,"table_id": "1-100000-7","question": "5009100 ID의 NAME_INCOME_TYPE은?","sql": {"sel": 6,"conds": [[0, 0, "5009100"]],"agg": 0}}
 {"phase": 1,"table_id": "1-100000-7","question": "CODE_GENDER 가 M 이고, NAME_INCOME_TYPE이 Working인 고객의 평균 AMT_INCOME_TOTAL 값은?","sql": {"sel": 5,"conds": [[1, 0, "M"],[6, 0, "Working"]],"agg": 5}}
 {"phase": 1,"table_id": "1-100000-7","question": "CODE_GENDER 가 F 이고, NAME_INCOME_TYPE이 Commercial associate인 고객의 평균 AMT_INCOME_TOTAL 값은?","sql": {"sel": 5,"conds": [[1, 0, "F"],[6, 0, "Commercial associate"]],"agg": 5}}
 {"phase": 1,"table_id": "1-100000-7","question": "NAME_FAMILY_STATUS 가 Married, NAME_HOUSING_TYPE이House / apartment인 고객의 평균 AMT_INCOME_TOTAL 값은?","sql": {"sel": 5,"conds": [[8, 0, "Married"],[9, 0, "House / apartment"]],"agg": 5}}
@@ -38,8 +38,8 @@
 {"phase": 1,"table_id": "1-100000-8","question": "CATEGORY가 Mobile Phone일때, BUDGET을 알고 싶어","sql": {"sel": 1,"conds": [[0, 0, "Mobile Phone"]],"agg": 0}}
 {"phase": 1,"table_id": "1-100000-8","question": "CATEGORY가 Utilities일 경우에, BUDGET을 알려줘","sql": {"sel": 1,"conds": [[0, 0, "Utilities"]],"agg": 0}}
 {"phase": 1,"table_id": "1-100000-8","question": "BUDGET이 1100인 값의 CATEGORY를 알려줘","sql": {"sel": 0,"conds": [[1, 0, "1100"]],"agg": 0}}
-{"phase": 1,"table_id": "1-100000-9","question": "2019/01/01 이후에 AMOUNT의 평균값을 알려줘","sql": {"sel": 2,"conds": [[0, 1, "2019/01/01"]],"agg": 5}}
-{"phase": 1,"table_id": "1-100000-9","question": "2019/01/01 이후에 DESCRIPTION이 Starbucks의 AMOUNT의 평균값을 알려줘","sql": {"sel": 2,"conds": [[0, 1, "2019/01/01"],[1, 0, "Starbucks"]],"agg": 5}}
+{"phase": 1,"table_id": "1-100000-9","question": "2019-01-01 이후에 AMOUNT의 평균값을 알려줘","sql": {"sel": 2,"conds": [[0, 1, "2019-01-01"]],"agg": 5}}
+{"phase": 1,"table_id": "1-100000-9","question": "2019-01-01 이후에 DESCRIPTION이 Starbucks의 AMOUNT의 평균값을 알려줘","sql": {"sel": 2,"conds": [[0, 1, "2019-01-01"],[1, 0, "Starbucks"]],"agg": 5}}
 {"phase": 1,"table_id": "1-100000-9","question": "TRANSACTION이 debit인 거래의 AMOUNT 평균값을 알려줘","sql": {"sel": 2,"conds": [[3, 0, "debit"]],"agg": 5}}
 {"phase": 1,"table_id": "1-100000-9","question": "ACCOUNT_NAME이 Platinum Card인 거래의 최대 CREATEDATE을 알려줘","sql": {"sel": 0,"conds": [[5, 0, "Platinum Card"]],"agg": 1}}
 {"phase": 1,"table_id": "1-100000-9","question": "ACCOUNT_NAME이 Silver Card인 거래의 최대 CREATEDATE을 알려줘","sql": {"sel": 0,"conds": [[5, 0, "Silver Card"]],"agg": 1}}
