@@ -8,11 +8,11 @@
 {"phase": 1,"table_id": "1-100000-2","question": "CUSTOMER_SEGMENT가 Gold인 고객의 AGE 평균은?","sql": {"sel": 1,"conds": [[2, 0, "Gold"]],"agg": 5}}
 {"phase": 1,"table_id": "1-100000-2","question": "CUSTOMER_VINTAGE_GROUP가 VG2인 고객의 AGE 평균은?","sql": {"sel": 1,"conds": [[3, 0, "VG2"]],"agg": 5}}
 {"phase": 1,"table_id": "1-100000-2","question": "CUST_ID 가 CC56494인 고객의 CUSTOMER_VINTAGE_GROUP은?","sql": {"sel": 3,"conds": [[0, 0, "CC56494"]],"agg": 0}}
-{"phase": 1,"table_id": "1-100000-3","question": "NO가 2고AGE가 71인 고객이 살고 있는 CITY는?","sql": {"sel": 3,"conds": [[0, 0, "3"],[2, 0, "71"]],"agg": 0}}
+{"phase": 1,"table_id": "1-100000-3","question": "NO가 2이고 AGE가 71인 고객이 살고 있는 CITY는?","sql": {"sel": 3,"conds": [[0, 0, "3"],[2, 0, "71"]],"agg": 0}}
 {"phase": 1,"table_id": "1-100000-3","question": "NO가 13이고 AGE가 29인 고객의 COMPANY를 알려줘","sql": {"sel": 6,"conds": [[0, 0, "3"],[2, 0, "71"]],"agg": 0}}
 {"phase": 1,"table_id": "1-100000-3","question": "CITY가 PATNA에 사는 고객의 평균 AGE는?","sql": {"sel": 2,"conds": [[3, 0, "PATNA"]],"agg": 5}}
-{"phase": 1,"table_id": "1-100000-3","question": "AGE가 50 이상인 고객의 평균 LIMIT 값을 알려줘","sql": {"sel": 5,"conds": [[2, 1, "50"]],"agg": 5}}
-{"phase": 1,"table_id": "1-100000-3","question": "LIMIT 값이 300000 이상인 고객의 평균 AGE를 알려줘","sql": {"sel": 2,"conds": [[5, 1, "300000"]],"agg": 5}}
+{"phase": 1,"table_id": "1-100000-3","question": "AGE가 50 이상인 고객의 평균 CREDIT_LIMIT 값을 알려줘","sql": {"sel": 5,"conds": [[2, 1, "50"]],"agg": 5}}
+{"phase": 1,"table_id": "1-100000-3","question": "CREDIT_LIMIT 값이 300000 이상인 고객의 평균 AGE를 알려줘","sql": {"sel": 2,"conds": [[5, 1, "300000"]],"agg": 5}}
 {"phase": 1,"table_id": "1-100000-4","question": "SL_NO 값이 1인 CUSTOMER를 알려줘","sql": {"sel": 1,"conds": [[0, 0, "1"]],"agg": 0}}
 {"phase": 1,"table_id": "1-100000-4","question": "SL_NO 값이 2인 MONTH를 알려줘","sql": {"sel": 2,"conds": [[0, 0, "2"]],"agg": 0}}
 {"phase": 1,"table_id": "1-100000-4","question": "SL_NO 값이 3인 AMOUNT를 알려줘","sql": {"sel": 3,"conds": [[0, 0, "3"]],"agg": 0}}
