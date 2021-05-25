@@ -39,7 +39,7 @@ def torch_seed(random_seed: int = 223):
     os.environ['PYTHONHASHSEED'] = str(random_seed)
 
 def topk_acc(engine, beam_size, bS, tb, topk_x_acc, topk_lx_acc, 
-             g_sc, g_sa, g_wn, g_wc, g_wo, g_wv, sql_i, pr_sql_topk_i):
+             g_sc, g_sa, g_wn, g_wc, g_wo, g_wv, sql_i, pr_sql_topk_i, demo):
     
     cnt_x = np.zeros(bS, dtype=np.int)
     cnt_lx = np.zeros(bS, dtype=np.int)
@@ -73,7 +73,7 @@ def topk_acc(engine, beam_size, bS, tb, topk_x_acc, topk_lx_acc,
             topk_lx_acc[f'Top-{i+1} lx'] += cnt_lx_k
 
         # Execution 
-        cnt_x1_list, _, _ = get_cnt_x_list(engine, tb, sql_i, pr_sql_b)
+        cnt_x1_list, _, _ = get_cnt_x_list(engine, tb, sql_i, pr_sql_b, demo)
         cnt_x += cnt_x1_list
         cnt_x_k = sum(cnt_x > 0)
 
@@ -1732,16 +1732,21 @@ def get_cnt_lx_list(cnt_sc1, cnt_sa1, cnt_wn1, cnt_wc1, cnt_wo1, cnt_wv1):
     return cnt_list
 
 
-def get_cnt_x_list(engine, tb, g_sql_i, pr_sql_i):
+def get_cnt_x_list(engine, tb, g_sql_i, pr_sql_i, demo=False):
     cnt_x1_list = []
     g_ans = []
     pr_ans = []
     for b in range(len(g_sql_i)):
-        g_ans1 = engine.execute(tb[b]['id'], g_sql_i[b]['sel'], g_sql_i[b]['agg'], g_sql_i[b]['conds'])
-        # print(f'cnt: {cnt}')
-        # print(f"pr_sql_i: {pr_sql_i[b]['conds']}")
+        if demo:
+            g_ans1 = engine.execute_demo(tb[b], g_sql_i[b]['sel'], g_sql_i[b]['agg'], g_sql_i[b]['conds'])
+        else:
+            g_ans1 = engine.execute(tb[b]['id'], g_sql_i[b]['sel'], g_sql_i[b]['agg'], g_sql_i[b]['conds'])
+
         try:
-            pr_ans1 = engine.execute(tb[b]['id'], pr_sql_i[b]['sel'], pr_sql_i[b]['agg'], pr_sql_i[b]['conds'])
+            if demo:
+                pr_ans1 = engine.execute_demo(tb[b], pr_sql_i[b]['sel'], pr_sql_i[b]['agg'], pr_sql_i[b]['conds'])
+            else:
+                pr_ans1 = engine.execute(tb[b]['id'], pr_sql_i[b]['sel'], pr_sql_i[b]['agg'], pr_sql_i[b]['conds'])
 
             if bool(pr_ans1):  # not empty due to lack of the data from incorretly generated sql
                 if g_ans1 == pr_ans1:
@@ -1754,6 +1759,7 @@ def get_cnt_x_list(engine, tb, g_sql_i, pr_sql_i):
             # type error etc... Execution-guided decoding may be used here.
             pr_ans1 = None
             cnt_x1 = 0
+        
         cnt_x1_list.append(cnt_x1)
         g_ans.append(g_ans1)
         pr_ans.append(pr_ans1)

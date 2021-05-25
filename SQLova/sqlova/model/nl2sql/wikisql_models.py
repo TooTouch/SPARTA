@@ -90,7 +90,7 @@ class Seq2SQL_v1(nn.Module):
                      nlu_t, nlu_wp_t, wp_to_wh_index, nlu,
                      beam_size=4, 
                      show_p_sc=False, show_p_sa=False,
-                     show_p_wn=False, show_p_wc=False, show_p_wo=False, show_p_wv=False, device='cpu'):
+                     show_p_wn=False, show_p_wc=False, show_p_wo=False, show_p_wv=False, demo=False, device='cpu'):
         """
         Execution-guided beam decoding.
         """
@@ -259,7 +259,10 @@ class Seq2SQL_v1(nn.Module):
                 prob_conds11 = prob_w[b, idxs11[0], idxs11[1], idxs11[2] ]
 
                 # test execution
-                pr_ans = engine.execute(tb[b]['id'], pr_sc[b], pr_sa[b], [conds11])
+                if demo:
+                    pr_ans = engine.execute_demo(tb[b], pr_sc[b], pr_sa[b], [conds11])
+                else:
+                    pr_ans = engine.execute(tb[b]['id'], pr_sc[b], pr_sa[b], [conds11])
                 if bool(pr_ans):
                     # pr_ans is not empty!
                     conds_max1.append(conds11)
