@@ -3,6 +3,7 @@ import json
 import numpy as np
 import pickle
 import utils
+from argparse import ArgumentParser
 from modeling.model_factory import create_model
 from featurizer import HydraFeaturizer, SQLDataset
 from wikisql_lib.dbengine import DBEngine
@@ -71,14 +72,34 @@ if __name__ == "__main__":
     
 ###================================================================================================###
 
+    parser = ArgumentParser()
+
+    # debug
+    parser.add_argument('--topk', type=int, default=3, help='k of top_k')
+    parser.add_argument('--beam_size', type=int, default=5, help='k of top_k')
+    
+    args = parser.parse_args()
+
+
+
     # case1 : ko_token_1
     ### dev
+#     in_file = "data/wikidevko_token_1.jsonl"
+#     out_file = "output/dev_out_ko_token_1_topk.jsonl"
+#     label_file = "WikiSQL/data/dev.jsonl"
+#     db_file = "WikiSQL/data/dev.db"
+#     model_out_file = "output/dev_model_out_ko_token_1_topk.pkl"
+
+    ####### for dev debugging
     in_file = "data/wikidevko_token_1.jsonl"
-    out_file = "output/dev_out_ko_token_1_topk.jsonl"
+    out_file = "output/dev_out_ko_token_1_topk_debug.jsonl"
     label_file = "WikiSQL/data/dev.jsonl"
     db_file = "WikiSQL/data/dev.db"
-    model_out_file = "output/dev_model_out_ko_token_1_topk.pkl"
-
+    model_out_file = "output/dev_model_out_ko_token_1_topk_debug.pkl"    
+    
+    
+    
+    
 #     ### test
 #     in_file = "data/wikitestko_token_1.jsonl"
 #     out_file = "output/test_out_ko_token_1.jsonl"
@@ -177,8 +198,8 @@ if __name__ == "__main__":
 #             g.write(json.dumps(result) + "\n")
 #     print_metric(label_file, out_file)
 
-    beam_size = 5
-    top_k = 3
+    beam_size = args.beam_size
+    top_k = args.topk
 
     print("===HydraNet+EG===")
     print(f"beam_size : {beam_size}, top_k : {top_k}")
@@ -198,7 +219,9 @@ if __name__ == "__main__":
             
             sub_query['agg'] = int(pred_sql[0])
             sub_query['sel'] = int(pred_sql[1])
-            sub_query["conds"] = [[cond if idx!=2 else str(cond) for idx, cond in enumerate(pred_sql[2])]]
+#             sub_query["conds"] = [[cond if idx!=2 else str(cond) for idx, cond in enumerate(pred_sql[2])]]
+#             sub_query["conds"] = [cond if idx!=2 else str(cond) for idx, cond in enumerate(pred_sql[2])]
+            sub_query["conds"] = [cond for cond in pred_sql[2]]
             tmp.append(sub_query)
             
             if idx == (top_k):   # 3 = top_k

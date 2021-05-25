@@ -47,10 +47,13 @@ if __name__ == '__main__':
             ep = json.loads(lp)
             pred = ep.get('error', None)
             qp = None
-            for i in range(3):
+            for i in range(args.topk):
                 if not ep.get('error', None):
                     try:
-#                         print("qp conditions : ", ep['query'][str(i)]['conds'])
+                        
+                        if ep['query'][str(i)]['conds'] == [[]]:
+                            ep['query'][str(i)]['conds'] = []
+            
                         qp = Query.from_dict(ep['query'][str(i)], ordered=args.ordered)
                         pred = engine.execute_query(eg['table_id'], qp, lower=True)
 #                         print("try qp : ", qp)
@@ -70,15 +73,12 @@ if __name__ == '__main__':
                 
             grades.append(correct)
 
-            try:
-                if qg in qp_topk:
-                    match = True
-                else:
-                    match = False
-            except:
+            if qg in qp_topk:
+                match = True
+            else:
                 match = False
                 
-            exact_match.append(match)    
+            exact_match.append(match)
             
             temp.append({"gold" : gold, "pred_topk" : pred_topk, "correct" : correct, "match" : match})
 
@@ -97,7 +97,7 @@ if __name__ == '__main__':
             f.write(result_json)
             
         with open(path_temp, 'w') as f:
-            f.write(temp_json)     
+            f.write(temp_json)
 
         ### 수정
 
@@ -105,8 +105,8 @@ if __name__ == '__main__':
             'ex_accuracy': sum(grades) / len(grades),
             'lf_accuracy': sum(exact_match) / len(exact_match),
             }, indent=2), "len grades : ", len(grades), "len exact match : ", len(exact_match))
-    
-    
+
+
 #     # debug
 #     temp = []
 #     idx = 0
