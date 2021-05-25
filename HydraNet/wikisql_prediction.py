@@ -74,7 +74,6 @@ if __name__ == "__main__":
 
     parser = ArgumentParser()
 
-    # debug
     parser.add_argument('--topk', type=int, default=3, help='k of top_k')
     parser.add_argument('--beam_size', type=int, default=5, help='k of top_k')
     
@@ -90,7 +89,7 @@ if __name__ == "__main__":
     db_file = "WikiSQL/data/dev.db"
     model_out_file = f"output/dev_model_out_ko_token_1_beam-{args.beam_size}_top-{args.topk}.pkl"    
     
-    
+
 #     ### test
 #     in_file = "data/wikitestko_token_1.jsonl"
 #     out_file = "output/test_out_ko_token_1.jsonl"
@@ -177,6 +176,7 @@ if __name__ == "__main__":
         model_outputs = model.dataset_inference(pred_data)
         pickle.dump(model_outputs, open(model_out_file, "wb"))
 
+
     beam_size = args.beam_size
     top_k = args.topk
 
@@ -204,6 +204,7 @@ if __name__ == "__main__":
             if idx == (top_k):   # 3 = top_k
                 
                 for i in range(top_k):
+                    # sub_query[i] = {"0": {"agg": 0, "sel": 3, "conds": [5, 0, "butler cc (ks)"]}
                     result_k['query'][i] = tmp[i]
                     
                 idx = 0
