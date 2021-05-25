@@ -84,20 +84,11 @@ if __name__ == "__main__":
 
     # case1 : ko_token_1
     ### dev
-#     in_file = "data/wikidevko_token_1.jsonl"
-#     out_file = "output/dev_out_ko_token_1_topk.jsonl"
-#     label_file = "WikiSQL/data/dev.jsonl"
-#     db_file = "WikiSQL/data/dev.db"
-#     model_out_file = "output/dev_model_out_ko_token_1_topk.pkl"
-
-    ####### for dev debugging
     in_file = "data/wikidevko_token_1.jsonl"
-    out_file = "output/dev_out_ko_token_1_topk_debug.jsonl"
+    out_file = f"output/dev_out_ko_token_1_beam-{args.beam_size}_top-{args.topk}.jsonl"
     label_file = "WikiSQL/data/dev.jsonl"
     db_file = "WikiSQL/data/dev.db"
-    model_out_file = "output/dev_model_out_ko_token_1_topk_debug.pkl"    
-    
-    
+    model_out_file = f"output/dev_model_out_ko_token_1_beam-{args.beam_size}_top-{args.topk}.pkl"    
     
     
 #     ### test
@@ -186,18 +177,6 @@ if __name__ == "__main__":
         model_outputs = model.dataset_inference(pred_data)
         pickle.dump(model_outputs, open(model_out_file, "wb"))
 
-#     print("===HydraNet===")
-#     pred_sqls = model.predict_SQL(pred_data, model_outputs=model_outputs)
-#     with open(out_file, "w") as g:
-#         for pred_sql in pred_sqls:
-#             # print(pred_sql)
-#             result = {"query": {}}
-#             result["query"]["agg"] = int(pred_sql[0])
-#             result["query"]["sel"] = int(pred_sql[1])
-#             result["query"]["conds"] = [(int(cond[0]), int(cond[1]), str(cond[2])) for cond in pred_sql[2]]
-#             g.write(json.dumps(result) + "\n")
-#     print_metric(label_file, out_file)
-
     beam_size = args.beam_size
     top_k = args.topk
 
@@ -219,15 +198,12 @@ if __name__ == "__main__":
             
             sub_query['agg'] = int(pred_sql[0])
             sub_query['sel'] = int(pred_sql[1])
-#             sub_query["conds"] = [[cond if idx!=2 else str(cond) for idx, cond in enumerate(pred_sql[2])]]
-#             sub_query["conds"] = [cond if idx!=2 else str(cond) for idx, cond in enumerate(pred_sql[2])]
             sub_query["conds"] = [cond for cond in pred_sql[2]]
             tmp.append(sub_query)
             
             if idx == (top_k):   # 3 = top_k
                 
                 for i in range(top_k):
-                    # sub_query[i] = {"0": {"agg": 0, "sel": 3, "conds": [5, 0, "butler cc (ks)"]}
                     result_k['query'][i] = tmp[i]
                     
                 idx = 0
@@ -238,14 +214,4 @@ if __name__ == "__main__":
     print(f"{out_file+'eg'} is saved for all pred_sqls. wikisql_prediction.py step is finished")
     
     ##======================EG + TOP_k=============================##
-    
-# original code    
-#     with open(out_file + ".eg", "w") as g:
-#         for pred_sql in pred_sqls:
-#             # print(pred_sql)
-#             result = {"query": {}}
-#             result["query"]["agg"] = int(pred_sql[0])
-#             result["query"]["sel"] = int(pred_sql[1])
-#             result["query"]["conds"] = [(int(cond[0]), int(cond[1]), str(cond[2])) for cond in pred_sql[2]]
-#             g.write(json.dumps(result) + "\n")
-#     print_metric(label_file, out_file + ".eg")
+
