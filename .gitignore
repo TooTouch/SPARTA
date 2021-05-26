@@ -129,7 +129,10 @@ dmypy.json
 .pyre/
 
 # data
-data/
+!data/
+!data/*.zip
+SQLova/data/
+demo/kaggle_demo/data/
 ko_data/
 model/
 viz/
