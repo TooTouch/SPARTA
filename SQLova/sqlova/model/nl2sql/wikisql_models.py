@@ -261,6 +261,7 @@ class Seq2SQL_v1(nn.Module):
                 # test execution
                 if demo:
                     pr_ans = engine.execute_demo(tb[b], pr_sc[b], pr_sa[b], [conds11])
+                    # pr_ans = engine.execute_demo(tb[b]['id'], pr_sc[b], pr_sa[b], [conds11])
                 else:
                     pr_ans = engine.execute(tb[b]['id'], pr_sc[b], pr_sa[b], [conds11])
                 if bool(pr_ans):
