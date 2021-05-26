@@ -1,0 +1,50 @@
+{"phase": 1, "table_id": "1-100000-1", "question": "CARD_NUMBER가 9621-6787-7890-7470인 CREDIT_LIMIT은?", "sql": {"sel": 2, "conds": [[0, 0, "9621-6787-7890-7470"]], "agg": 0}}
+{"phase": 1, "table_id": "1-100000-1", "question": "CARD_NUMBER가 2868-5606-5152-5706이고 CARD_FAMILY가 GOLD인 CUST_ID를 알려줘", "sql": {"sel": 3, "conds": [[0, 0, "2868-5606-5152-5706"], [1, 0, "GOLD"]], "agg": 0}}
+{"phase": 1, "table_id": "1-100000-1", "question": "CARD_FAMILY가 Premium인 고객의 CREDIT_LIMIT의 평균을 알려줘", "sql": {"sel": 2, "conds": [[1, 0, "Premium"]], "agg": 5}}
+{"phase": 1, "table_id": "1-100000-1", "question": "CARD_FAMILY가 Gold인 고객의 CREDIT_LIMIT의 평균을 알려줘", "sql": {"sel": 2, "conds": [[1, 0, "Gold"]], "agg": 5}}
+{"phase": 1, "table_id": "1-100000-1", "question": "CARD_FAMILY가 Gold인 고객의 CREDIT_LIMIT의 최소값은?", "sql": {"sel": 2, "conds": [[1, 0, "Gold"]], "agg": 2}}
+{"phase": 1, "table_id": "1-100000-2", "question": "CUSTOMER_SEGMENT가 Diamond인 고객의 CUST_ID가 CC15926인 고객의 AGE는?", "sql": {"sel": 1, "conds": [[2, 0, "Diamond"], [0, 0, "CC15926"]], "agg": 0}}
+{"phase": 1, "table_id": "1-100000-2", "question": "CUSTOMER_SEGMENT가 Diamond인 고객의 AGE 평균은?", "sql": {"sel": 1, "conds": [[2, 0, "Diamond"]], "agg": 5}}
+{"phase": 1, "table_id": "1-100000-2", "question": "CUSTOMER_SEGMENT가 Gold인 고객의 AGE 평균은?", "sql": {"sel": 1, "conds": [[2, 0, "Gold"]], "agg": 5}}
+{"phase": 1, "table_id": "1-100000-2", "question": "CUSTOMER_VINTAGE_GROUP가 VG2인 고객의 AGE 평균은?", "sql": {"sel": 1, "conds": [[3, 0, "VG2"]], "agg": 5}}
+{"phase": 1, "table_id": "1-100000-2", "question": "CUST_ID 가 CC56494인 고객의 CUSTOMER_VINTAGE_GROUP은?", "sql": {"sel": 3, "conds": [[0, 0, "CC56494"]], "agg": 0}}
+{"phase": 1, "table_id": "1-100000-3", "question": "NO가 2이고 AGE가 71인 고객이 살고 있는 CITY는?", "sql": {"sel": 3, "conds": [[0, 0, "2"], [2, 0, "71"]], "agg": 0}}
+{"phase": 1, "table_id": "1-100000-3", "question": "NO가 13이고 AGE가 29인 고객의 COMPANY를 알려줘", "sql": {"sel": 6, "conds": [[0, 0, "13"], [2, 0, "29"]], "agg": 0}}
+{"phase": 1, "table_id": "1-100000-3", "question": "CITY가 PATNA에 사는 고객의 평균 AGE는?", "sql": {"sel": 2, "conds": [[3, 0, "PATNA"]], "agg": 5}}
+{"phase": 1, "table_id": "1-100000-3", "question": "AGE가 50 이상인 고객의 평균 CREDIT_LIMIT 값을 알려줘", "sql": {"sel": 5, "conds": [[2, 1, "50"]], "agg": 5}}
+{"phase": 1, "table_id": "1-100000-3", "question": "CREDIT_LIMIT 값이 300000 이상인 고객의 평균 AGE를 알려줘", "sql": {"sel": 2, "conds": [[5, 1, "300000"]], "agg": 5}}
+{"phase": 1, "table_id": "1-100000-4", "question": "SL_NO 값이 1인 CUSTOMER를 알려줘", "sql": {"sel": 1, "conds": [[0, 0, "1"]], "agg": 0}}
+{"phase": 1, "table_id": "1-100000-4", "question": "SL_NO 값이 2인 MONTH를 알려줘", "sql": {"sel": 2, "conds": [[0, 0, "2"]], "agg": 0}}
+{"phase": 1, "table_id": "1-100000-4", "question": "SL_NO 값이 3인 AMOUNT를 알려줘", "sql": {"sel": 3, "conds": [[0, 0, "3"]], "agg": 0}}
+{"phase": 1, "table_id": "1-100000-4", "question": "CUSTOMER 값이 A69인 MONTH의 최대값을 알려줘", "sql": {"sel": 2, "conds": [[1, 0, "A69"]], "agg": 1}}
+{"phase": 1, "table_id": "1-100000-4", "question": "MONTH가 6-May-06인 AMOUNT의 평균은?", "sql": {"sel": 3, "conds": [[2, 0, "6-May-06"]], "agg": 5}}
+{"phase": 1, "table_id": "1-100000-5", "question": "TYPE이 SHOPPING 일때, AMOUNT의 평균은?", "sql": {"sel": 4, "conds": [[3, 0, "SHOPPING"]], "agg": 5}}
+{"phase": 1, "table_id": "1-100000-5", "question": "TYPE이 AIR TICKET 일때, MONTH의 최대값은?", "sql": {"sel": 2, "conds": [[3, 0, "AIR TICKET"]], "agg": 1}}
+{"phase": 1, "table_id": "1-100000-5", "question": "SL_NO이 50인 CUSTOMER의 값은?", "sql": {"sel": 1, "conds": [[0, 0, "50"]], "agg": 0}}
+{"phase": 1, "table_id": "1-100000-5", "question": "TYPE이 CAMERA의 최대 SL_NO?", "sql": {"sel": 0, "conds": [[3, 0, "CAMERA"]], "agg": 1}}
+{"phase": 1, "table_id": "1-100000-5", "question": "TYPE이 AUTO일때 최소 SL_NO?", "sql": {"sel": 0, "conds": [[3, 0, "AUTO"]], "agg": 2}}
+{"phase": 1, "table_id": "1-100000-6", "question": "TRANSACTION_ID가 CTID14284190인 경우에 CREDIT_CARD_ID 번호를 알려줘", "sql": {"sel": 2, "conds": [[0, 0, "CTID14284190"]], "agg": 0}}
+{"phase": 1, "table_id": "1-100000-6", "question": "TRANSACTION_ID가 CTID83907454일때, TRANSACTION_VALUE를 알려줘", "sql": {"sel": 3, "conds": [[0, 0, "CTID83907454"]], "agg": 0}}
+{"phase": 1, "table_id": "1-100000-6", "question": "CREDIT_CARD_ID가 5583-9751-6086-5673 일때, TRANSACTION_VALUE의 평균값을 알려줘", "sql": {"sel": 3, "conds": [[2, 0, "5583-9751-6086-5673"]], "agg": 5}}
+{"phase": 1, "table_id": "1-100000-6", "question": "TRANSACTION_SEGMENT가 SEG19일때, TRANSACTION_VALUE의 평균값을 알려줘", "sql": {"sel": 3, "conds": [[4, 0, "SEG19"]], "agg": 5}}
+{"phase": 1, "table_id": "1-100000-6", "question": "TRANSACTION_ID가 CTID50637354이고 CREDIT_CARD_ID가 9356-9491-6534-8313 일때, TRANSACTION_DATE는?", "sql": {"sel": 1, "conds": [[0, 0, "CTID50637354"], [2, 0, "9356-9491-6534-8313"]], "agg": 0}}
+{"phase": 1, "table_id": "1-100000-7", "question": "5009100 ID의 NAME_INCOME_TYPE은?", "sql": {"sel": 6, "conds": [[0, 0, "5009100"]], "agg": 0}}
+{"phase": 1, "table_id": "1-100000-7", "question": "CODE_GENDER 가 M 이고, NAME_INCOME_TYPE이 Working인 고객의 평균 AMT_INCOME_TOTAL 값은?", "sql": {"sel": 5, "conds": [[1, 0, "M"], [6, 0, "Working"]], "agg": 5}}
+{"phase": 1, "table_id": "1-100000-7", "question": "CODE_GENDER 가 F 이고, NAME_INCOME_TYPE이 Commercial associate인 고객의 평균 AMT_INCOME_TOTAL 값은?", "sql": {"sel": 5, "conds": [[1, 0, "F"], [6, 0, "Commercial associate"]], "agg": 5}}
+{"phase": 1, "table_id": "1-100000-7", "question": "NAME_FAMILY_STATUS 가 Married, NAME_HOUSING_TYPE이House / apartment인 고객의 평균 AMT_INCOME_TOTAL 값은?", "sql": {"sel": 5, "conds": [[8, 0, "Married"], [9, 0, "House / apartment"]], "agg": 5}}
+{"phase": 1, "table_id": "1-100000-7", "question": "OCCUPATION_TYPE이 Drivers, NAME_FAMILY_STATUS 가Married인 고객의 평균 AMT_INCOME_TOTAL 값은?", "sql": {"sel": 5, "conds": [[16, 0, "Drivers"], [8, 0, "Married"]], "agg": 5}}
+{"phase": 1, "table_id": "1-100000-8", "question": "CATEGORY Coffee shops의 BUDGET을 알고 싶어", "sql": {"sel": 1, "conds": [[0, 0, "Coffee Shops"]], "agg": 0}}
+{"phase": 1, "table_id": "1-100000-8", "question": "CATEGORY가 Entertainment인 BUDGET을 알고 싶어", "sql": {"sel": 1, "conds": [[0, 0, "Entertainment"]], "agg": 0}}
+{"phase": 1, "table_id": "1-100000-8", "question": "CATEGORY가 Mobile Phone일때, BUDGET을 알고 싶어", "sql": {"sel": 1, "conds": [[0, 0, "Mobile Phone"]], "agg": 0}}
+{"phase": 1, "table_id": "1-100000-8", "question": "CATEGORY가 Utilities일 경우에, BUDGET을 알려줘", "sql": {"sel": 1, "conds": [[0, 0, "Utilities"]], "agg": 0}}
+{"phase": 1, "table_id": "1-100000-8", "question": "BUDGET이 1100인 값의 CATEGORY를 알려줘", "sql": {"sel": 0, "conds": [[1, 0, "1100"]], "agg": 0}}
+{"phase": 1, "table_id": "1-100000-9", "question": "2019-01-01 이후에 AMOUNT의 평균값을 알려줘", "sql": {"sel": 2, "conds": [[0, 1, "2019-01-01"]], "agg": 5}}
+{"phase": 1, "table_id": "1-100000-9", "question": "2019-01-01 이후에 DESCRIPTION이 Starbucks의 AMOUNT의 평균값을 알려줘", "sql": {"sel": 2, "conds": [[0, 1, "2019-01-01"], [1, 0, "Starbucks"]], "agg": 5}}
+{"phase": 1, "table_id": "1-100000-9", "question": "TRANSACTION이 debit인 거래의 AMOUNT 평균값을 알려줘", "sql": {"sel": 2, "conds": [[3, 0, "debit"]], "agg": 5}}
+{"phase": 1, "table_id": "1-100000-9", "question": "ACCOUNT_NAME이 Platinum Card인 거래의 최대 CREATEDATE을 알려줘", "sql": {"sel": 0, "conds": [[5, 0, "Platinum Card"]], "agg": 1}}
+{"phase": 1, "table_id": "1-100000-9", "question": "ACCOUNT_NAME이 Silver Card인 거래의 최대 CREATEDATE을 알려줘", "sql": {"sel": 0, "conds": [[5, 0, "Silver Card"]], "agg": 1}}
+{"phase": 1, "table_id": "1-100000-10", "question": "JOB이 technician이고, MARITAL이 married인 상태인 고객의 평균 AGE는? ", "sql": {"sel": 0, "conds": [[1, 0, "technician"], [2, 0, "married"]], "agg": 5}}
+{"phase": 1, "table_id": "1-100000-10", "question": "JOB이 blue-collar이고, MARITAL이 single인 상태인 고객의 평균 AGE는? ", "sql": {"sel": 0, "conds": [[1, 0, "blue-collar"], [2, 0, "single"]], "agg": 5}}
+{"phase": 1, "table_id": "1-100000-10", "question": "LOAN의 상태가 yes고, HOUSING 여부가 yes인 상태인 고객의 평균 AGE는? ", "sql": {"sel": 0, "conds": [[7, 0, "yes"], [6, 0, "yes"]], "agg": 5}}
+{"phase": 1, "table_id": "1-100000-10", "question": "LOAN의 상태가 yes고, HOUSING 여부가 yes인 상태인 고객의 평균 BALANCE는? ", "sql": {"sel": 5, "conds": [[7, 0, "yes"], [6, 0, "yes"]], "agg": 5}}
+{"phase": 1, "table_id": "1-100000-10", "question": "JOB이 blue-collar이고, MARITAL이 single인 상태인 고객의 평균 BALANCE는? ", "sql": {"sel": 5, "conds": [[1, 0, "blue-collar"], [2, 0, "single"]], "agg": 5}}
