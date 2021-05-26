@@ -26,7 +26,7 @@ class DBEngine:
     def execute(self, table_id, select_index, aggregation_index, conditions, lower=True):
         if not table_id.startswith('table'):
             table_id = 'table_{}'.format(table_id.replace('-', '_'))
-            print(table_id)
+            
         table_info = self.db.query('SELECT sql from sqlite_master WHERE tbl_name = :name', name=table_id).all()[0].sql.replace('\n','')
         schema_str = schema_re.findall(table_info)[0]
         schema = {}
@@ -61,7 +61,7 @@ class DBEngine:
         if where_clause:
             where_str = 'WHERE ' + ' AND '.join(where_clause)
         query = 'SELECT {} AS result FROM {} {}'.format(select, table_id, where_str)
-        print(query)
+
         #print query
         out = self.db.query(query, **where_map)
 
@@ -100,6 +100,7 @@ class DBEngine:
         if where_clause:
             where_str = 'WHERE ' + ' AND '.join(where_clause)
         query = 'SELECT {} AS result FROM {} {}'.format(select, table_id, where_str)
+
         #print query
         out = self.db.query(query, **where_map)
 
@@ -110,45 +111,3 @@ class DBEngine:
             table_id = 'table_{}'.format(table_id.replace('-', '_'))
         rows = self.db.query('select * from ' +table_id)
         print(rows.dataset)
-
-
-    def execute_demo(self, table, select_index, agg_index, conditions, lower=True):
-        table_id = table['name']
-        headers = table['header']
-        table_info = self.db.query('SELECT sql from sqlite_master WHERE tbl_name = :name', name=table_id).all()[0].sql.replace('\n','')
-        schema_str = schema_re.findall(table_info)[0]
-        schema = {}
-        for tup in schema_str.split(', '):
-            c, t = tup.split()
-            schema[c] = t
-        
-        select = headers[select_index]
-        agg = agg_ops[agg_index]
-        if agg:
-            select = '{}({})'.format(agg, select)
-        where_clause = []
-        where_map = {}
-        for col_index, op, val in conditions:
-            wc = headers[col_index]
-            if lower and (isinstance(val, str) or isinstance(val, str)):
-                val = val.lower()
-            if schema[wc] == 'NUMBER' and not isinstance(val, (int, float)):
-                try:
-                    if val.isdigit():
-                        val = int(val)
-                    else:
-                        val = float(val)  
-                except:
-                    pass
-                              
-                
-            where_clause.append('{} {} :{}'.format(wc, cond_ops[op], wc))
-            where_map['{}'.format(wc)] = val
-        where_str = ''
-        if where_clause:
-            where_str = 'WHERE ' + ' AND '.join(where_clause)
-        query = 'SELECT {} AS result FROM {} {}'.format(select, table_id, where_str)
-
-        out = self.db.query(query, **where_map)
-
-        return [o.result for o in out]
