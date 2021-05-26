@@ -1,10 +1,21 @@
 # SPARTA (Semantic Parsing And Relational Table Aware)
 
-We implement the deep learning model for converting Korean language to SQL query. 
+This is a term project in `Unstructured Text Analysis` class. We implement the deep learning model for converting Korean language to SQL query. 
 
 <div align='center'>
     <img src='https://user-images.githubusercontent.com/37654013/119700897-bec2c100-be8e-11eb-9d61-36de1ca66d5a.png'>
 </div>
+
+**Team Members**
+- Hoonsang Yoon 
+- Jaehyuk Heo 
+- Jungwoo Choi
+- Jeongseob Kim
+
+**Information**
+- Korea University [DSBA Lab](http://dsba.korea.ac.kr/)
+- Advisor: [Pilsung Kang](http://dsba.korea.ac.kr/professor/)
+
 
 # Demo 
 
