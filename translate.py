@@ -1,11 +1,31 @@
-from sqlova.utils.utils_wikisql import load_wikisql_data
-
 import pandas as pd 
 import os 
 import json
 from copy import deepcopy
 import argparse
-from tqdm.auto import tqdm
+
+def load_wikisql_data(path_wikisql, mode='train'):
+    """ 
+    Load wikisql dataset
+    """
+
+    path_sql = os.path.join(path_wikisql, mode + '.jsonl')    
+    path_table = os.path.join(path_wikisql, mode + '.tables.jsonl')
+
+    data = []
+    table = {}
+
+    with open(path_sql) as f:
+        for line in f:
+            t1 = json.loads(line.strip())
+            data.append(t1)
+
+    with open(path_table) as f:
+        for line in f:
+            t1 = json.loads(line.strip())
+            table[t1['id']] = t1
+
+    return data, table
 
 def replace_value_with_h_wv(data: list, tables: dict, header: bool = True):
     """
@@ -237,7 +257,7 @@ def save_token_question_and_info(name: str, datadir: str, savedir: str, header: 
     
     token_info = {name:{}}
     # load data
-    data, tables = load_wikisql_data(path_wikisql=datadir, mode=name, no_tok=True, no_hs_tok=True)
+    data, tables = load_wikisql_data(path_wikisql=datadir, mode=name)
     # transform
     if from_table:
         data_with_token, total_in_q_dict = replace_value_with_v_from_table(data=deepcopy(data), tables=tables, header=header)    
@@ -276,7 +296,7 @@ def insert_replace_v_with_value_from_table(name: str, datadir:str, savedir: str,
     assert os.path.isfile(ko_filepath), f'ko_{name}_question.txt does not exist.'
 
     # load English data
-    data, _ = load_wikisql_data(path_wikisql=datadir, mode=name, no_tok=True, no_hs_tok=True)
+    data, _ = load_wikisql_data(path_wikisql=datadir, mode=name)
 
     # read Korean questions
     with open(ko_filepath,'r') as f:
@@ -348,7 +368,7 @@ def insert_replace_h_wv_with_value(name: str, datadir:str, savedir: str, header:
     assert os.path.isfile(ko_filepath), f'ko_{name}_question.txt does not exist.'
 
     # load English data
-    data, _ = load_wikisql_data(path_wikisql=datadir, mode=name, no_tok=True, no_hs_tok=True)
+    data, _ = load_wikisql_data(path_wikisql=datadir, mode=name)
 
     # read Korean questions
     with open(ko_filepath,'r') as f:
