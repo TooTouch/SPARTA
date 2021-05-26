@@ -143,6 +143,7 @@ logs/
 results/
 old/
 notebook/
+kaggle.json
 
 # model
 *.pt 
