@@ -138,13 +138,14 @@ wandb/
 # SQLova
 sqlova_custom
 SQLova/corenlp
-notebook/
 !SQLova/sqlova/model/  
 logs/
 results/
 old/
+notebook/
 
 # model
 *.pt 
 *.pth
 
+.vscode
