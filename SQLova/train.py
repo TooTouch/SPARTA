@@ -37,8 +37,9 @@ warnings.filterwarnings(action='ignore')
 def construct_hyper_param(parser, notebook=False):
     parser.add_argument('--datadir', default='./data/ko_token/', type=str, help='data directory')
     parser.add_argument('--logdir', default='./logs/ko_token/', type=str, help='log directory')
+    parser.add_argument('--savedir', default='./result/ko_token/', type=str, help='save directory')
+
     parser.add_argument("--do_train", default=False, action='store_true')
-    
     parser.add_argument('--do_dev', default=False, action='store_true')
     parser.add_argument('--do_test', default=False, action='store_true')
 
@@ -199,6 +200,17 @@ def get_data(path_wikisql, args):
 
     return train_data, train_table, dev_data, dev_table, test_data, test_table, train_loader, dev_loader, test_loader
 
+def get_demo(path_wikisql, args):
+    test_data, test_table = load_wikisql_data(path_wikisql, mode='test', toy_model=args.toy_model, toy_size=args.toy_size, no_tok=False, no_hs_tok=True)
+    test_loader = torch.utils.data.DataLoader(
+        batch_size=args.bS,
+        dataset=test_data,
+        shuffle=False,
+        num_workers=4,
+        collate_fn=lambda x: x
+    )
+
+    return test_data, test_table, test_loader
 
 def train(train_loader, train_table, model, model_bert, opt, bert_config, tokenizer,
           max_seq_length, num_target_layers, accumulate_gradients=1, check_grad=True,
@@ -544,6 +556,8 @@ def test(data_loader, data_table, model, model_bert, bert_config, tokenizer,
             topk_lx_acc, topk_x_acc = topk_acc(engine, beam_size, len(t), tb, topk_x_acc, topk_lx_acc, 
                                                g_sc, g_sa, g_wn, g_wc, g_wo, g_wv, sql_i, pr_sql_topk_i)
 
+
+
     # loss and accuracy
     ave_loss /= cnt
     acc_sc = cnt_sc / cnt
@@ -697,10 +711,14 @@ if __name__ == '__main__':
 
     if not os.path.isdir(args.logdir):
         os.makedirs(args.logdir)
+    if not os.path.isdir(args.savedir):
+        os.makedirs(args.savedir)
 
     ## 3. Load data
-
-    train_data, train_table, dev_data, dev_table, test_data, test_table, train_loader, dev_loader, test_loader = get_data(args.datadir, args)
+    if args.do_test:
+        test_data, test_table, test_loader = get_demo(args.datadir, args)
+    else:
+        train_data, train_table, dev_data, dev_table, test_data, test_table, train_loader, dev_loader, test_loader = get_data(args.datadir, args)
 
     ## 4. Build & Load models
     if not args.trained:
@@ -795,7 +813,7 @@ if __name__ == '__main__':
             writer.add_scalar('Dev/Acc Execute', acc_dev[9], epoch)
 
             # save results for the official evaluation
-            save_for_evaluation(args.logdir, results_dev, 'dev')
+            save_for_evaluation(args.savedir, results_dev, 'dev')
 
             # save best model and train information
             # Based on Dev Set logical accuracy lx
@@ -852,10 +870,10 @@ if __name__ == '__main__':
         else:
             print_result(-1, acc_test, 'do_dev')
 
-        json.dump(save_dict, open(os.path.join(args.logdir, f'dev_performance_beamsize{args.beam_size}.json'),'w'), indent=4)
+        json.dump(save_dict, open(os.path.join(args.savedir, f'dev_performance_beamsize{args.beam_size}.json'),'w'), indent=4)
 
         # save results for the official evaluation
-        save_for_evaluation(args.logdir, results_test, f'dev_beamsize{args.beam_size}')
+        save_for_evaluation(args.savedir, results_test, f'dev_beamsize{args.beam_size}')
 
 
     if args.do_test:
@@ -890,11 +908,11 @@ if __name__ == '__main__':
         else:
             print_result(-1, acc_test, 'test')
         
-        json.dump(save_dict, open(os.path.join(args.logdir, f'test_performance_beamsize{args.beam_size}.json'),'w'), indent=4)
+        json.dump(save_dict, open(os.path.join(args.savedir, f'test_performance_beamsize{args.beam_size}.json'),'w'), indent=4)
 
         # save results for the official evaluation
-        save_for_evaluation(args.logdir, results_test, f'test_beamsize{args.beam_size}')
-
+        save_for_evaluation(args.savedir, results_test, f'test_beamsize{args.beam_size}')
+    
 
     if args.do_infer:
         # To use recent corenlp: https://github.com/stanfordnlp/python-stanford-corenlp
