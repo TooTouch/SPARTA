@@ -116,18 +116,17 @@ Bridge   | Generation | 54.6 | 62.1
 
 **Proposal**
 
-<div align='center'>
-    <iframe width="760" height="515" src="https://www.youtube.com/embed/Chy0W8W5ck8" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
-</div>
+[![](https://user-images.githubusercontent.com/37654013/119706901-82df2a00-be95-11eb-881a-9a6960bb205a.png)](https://youtu.be/Chy0W8W5ck8)
+
 
 **Interim Findings**
 
-<div align='center'>
-    <iframe width="760" height="515" src="https://www.youtube.com/embed/vMJcWZ6Sn5s" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
-</div>
+[![](https://user-images.githubusercontent.com/37654013/119706604-2a0f9180-be95-11eb-94ad-7d118e05ebcd.png)](https://www.youtube.com/watch?v=vMJcWZ6Sn5s)
+
+
 # Reference
 
-[1] Victor Zhong, Caiming Xiong, and Richard Socher. 2017. Seq2SQL: Generating Structured Queries from Natural Language using Reinforcement Learning.
-[2] Hwang, W., Yim, J., Park, S., & Seo, M. (2019). A comprehensive exploration on wikisql with table-aware word contextualization. KR2ML Workship at NeurIPS 2019
-[3] Lyu, Q., Chakrabarti, K., Hathi, S., Kundu, S., Zhang, J., & Chen, Z. (2020). Hybrid ranking network for text-to-sql. arXiv preprint arXiv:2008.04759.
-[4] Xi Victoria Lin, Richard Socher and Caiming Xiong. Bridging Textual and Tabular Data for Cross-Domain Text-to-SQL Semantic Parsing. Findings of EMNLP 2020.
+- [1] Victor Zhong, Caiming Xiong, and Richard Socher. 2017. Seq2SQL: Generating Structured Queries from Natural Language using Reinforcement Learning.
+- [2] Hwang, W., Yim, J., Park, S., & Seo, M. (2019). A comprehensive exploration on wikisql with table-aware word contextualization. KR2ML Workship at NeurIPS 2019
+- [3] Lyu, Q., Chakrabarti, K., Hathi, S., Kundu, S., Zhang, J., & Chen, Z. (2020). Hybrid ranking network for text-to-sql. arXiv preprint arXiv:2008.04759.
+- [4] Xi Victoria Lin, Richard Socher and Caiming Xiong. Bridging Textual and Tabular Data for Cross-Domain Text-to-SQL Semantic Parsing. Findings of EMNLP 2020.
