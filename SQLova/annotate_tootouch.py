@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 # docker run --name corenlp -d -p 9000:9000 vzhong/corenlp-server
 # Wonseok Hwang. Jan 6 2019, Comment added
+# Jaehyuk Heo. May 25 2021, Edited
 from argparse import ArgumentDefaultsHelpFormatter, ArgumentParser
 import os
-import records
 import ujson as json
+
 from tqdm import tqdm
 import copy
 from wikisql.lib.common import count_lines, detokenize
@@ -92,7 +93,7 @@ def annotate_example_tootouch(example, table):
     #     'header': [annotate(h) for h in table['header']],
     # }
     ann['sql'] = example['sql']
-    ann['query'] = sql = copy.deepcopy(example['sql'])
+    ann['query'] = copy.deepcopy(example['sql'])
 
     conds1 = ann['sql']['conds']
     wv_ann1 = []
@@ -155,12 +156,12 @@ if __name__ == '__main__':
         with open(fsplit) as fs, open(ftable) as ft, open(fout, 'w', encoding='utf-8') as fo:
             print('loading tables')
 
-            # ws: Construct table dict with table_id as a key.
             tables = {}
             for line in tqdm(ft, total=count_lines(ftable)):
                 d = json.loads(line)
                 tables[d['id']] = d
             print('loading examples')
+
             n_written = 0
             cnt = -1
             for line in tqdm(fs, total=count_lines(fsplit)):
