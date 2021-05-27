@@ -83,19 +83,19 @@ if __name__ == "__main__":
 
     # case1 : ko_token_1
     ### dev
-    in_file = "data/wikidevko_token_1.jsonl"
-    out_file = f"output/dev_out_ko_token_1_beam-{args.beam_size}_top-{args.topk}.jsonl"
-    label_file = "WikiSQL/data/dev.jsonl"
-    db_file = "WikiSQL/data/dev.db"
-    model_out_file = f"output/dev_model_out_ko_token_1_beam-{args.beam_size}_top-{args.topk}.pkl"    
+#     in_file = "data/wikidevko_token_1.jsonl"
+#     out_file = f"output/dev_out_ko_token_1_beam-{args.beam_size}_top-{args.topk}.jsonl"
+#     label_file = "WikiSQL/data/dev.jsonl"
+#     db_file = "WikiSQL/data/dev.db"
+#     model_out_file = f"output/dev_model_out_ko_token_1_beam-{args.beam_size}_top-{args.topk}.pkl"    
     
 
-#     ### test
+#     ### test (20210504_203857)
 #     in_file = "data/wikitestko_token_1.jsonl"
-#     out_file = "output/test_out_ko_token_1.jsonl"
+#     out_file = f"output/test_out_ko_token_1_beam-{args.beam_size}_top-{args.topk}.jsonl"
 #     label_file = "WikiSQL/data/test.jsonl"
 #     db_file = "WikiSQL/data/test.db"
-#     model_out_file = "output/test_model_out_ko_token_1.pkl"
+#     model_out_file = f"output/test_model_out_ko_token_1_beam-{args.beam_size}_top-{args.topk}.pkl"
     
     
     # case2 : ko_token_not_h_2
@@ -107,12 +107,12 @@ if __name__ == "__main__":
 #     model_out_file = "output/dev_model_out_ko_token_not_h_2.pkl"
     
     
-    ### test
+    ### test (20210505_124438)
 #     in_file = "data/wikitestko_token_not_h_2.jsonl"
-#     out_file = "output/test_out_ko_token_not_h_2.jsonl"
+#     out_file = f"output/test_out_ko_token_not_h_2_beam-{args.beam_size}_top-{args.topk}.jsonl"
 #     label_file = "WikiSQL/data/test.jsonl"
 #     db_file = "WikiSQL/data/test.db"
-#     model_out_file = "output/test_model_out_ko_token_not_h_2.pkl"
+#     model_out_file = f"output/test_model_out_ko_token_not_h_2_beam-{args.beam_size}_top-{args.topk}.pkl"
 
 
     # case3 : ko_from_table_3
@@ -124,12 +124,12 @@ if __name__ == "__main__":
 #     model_out_file = "output/dev_model_out_ko_from_table_3.pkl"
     
     
-    ### test
+    ### test (20210505_182728)
 #     in_file = "data/wikitestko_from_table_3.jsonl"
-#     out_file = "output/test_out_ko_from_table_3.jsonl"
+#     out_file = f"output/test_out_ko_from_table_3_beam-{args.beam_size}_top-{args.topk}.jsonl"
 #     label_file = "WikiSQL/data/test.jsonl"
 #     db_file = "WikiSQL/data/test.db"
-#     model_out_file = "output/test_model_out_ko_from_table_3.pkl"
+#     model_out_file = f"output/test_model_out_ko_from_table_3_beam-{args.beam_size}_top-{args.topk}.pkl"
     
     
     # case4 : ko_from_table_not_h_4
@@ -141,17 +141,17 @@ if __name__ == "__main__":
 #     model_out_file = "output/dev_model_out_ko_from_table_not_h_4.pkl"
     
     
-    ### test
-#     in_file = "data/wikitestko_from_table_not_h_4.jsonl"
-#     out_file = "output/test_out_ko_from_table_not_h_4.jsonl"
-#     label_file = "WikiSQL/data/test.jsonl"
-#     db_file = "WikiSQL/data/test.db"
-#     model_out_file = "output/test_model_out_ko_from_table_not_h_4.pkl"
+    ### test (20210505_235209)
+    in_file = "data/wikitestko_from_table_not_h_4.jsonl"
+    out_file = f"output/test_out_ko_from_table_not_h_4_beam-{args.beam_size}_top-{args.topk}.jsonl"
+    label_file = "WikiSQL/data/test.jsonl"
+    db_file = "WikiSQL/data/test.db"
+    model_out_file = f"output/test_model_out_ko_from_table_not_h_4_beam-{args.beam_size}_top-{args.topk}.pkl"
     
 ###================================================================================================###
     
     # All Best
-    model_path = "output/20210504_203857"
+    model_path = "output/20210505_235209"
     epoch = 4
 
     engine = DBEngine(db_file)
@@ -201,7 +201,7 @@ if __name__ == "__main__":
             sub_query["conds"] = [cond for cond in pred_sql[2]]
             tmp.append(sub_query)
             
-            if idx == (top_k):   # 3 = top_k
+            if idx == (top_k):
                 
                 for i in range(top_k):
                     # sub_query[i] = {"0": {"agg": 0, "sel": 3, "conds": [5, 0, "butler cc (ks)"]}
@@ -212,7 +212,7 @@ if __name__ == "__main__":
             
                 g.write(json.dumps(result_k, cls=NpEncoder) + "\n")
             
-    print(f"{out_file+'eg'} is saved for all pred_sqls. wikisql_prediction.py step is finished")
+    print(f"{out_file+'.eg'} is saved for all pred_sqls. wikisql_prediction.py step is finished")
     
     ##======================EG + TOP_k=============================##
 
