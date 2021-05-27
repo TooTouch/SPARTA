@@ -234,12 +234,19 @@ class BaseModel(object):
         
         selects = []
         for i in range(top_k):
-            selects.append(select_id_prob[i][0])
+            try:
+                selects.append(select_id_prob[i][0])
+            except:
+                selects.append(select_id_prob[0][0])
         
         aggs = []
         for i in range(top_k):
-            agg = np.argmax(model_output["agg"][selects[i], :])
-            aggs.append(agg)
+            try: 
+                agg = np.argmax(model_output["agg"][selects[i], :])
+                aggs.append(agg)
+            except:
+                agg = np.argmax(model_output["agg"][selects[0], :])
+                aggs.append(agg)
         
         where_id_prob = sorted(enumerate(model_output["column_func"][:, 1]), key=lambda x:x[1], reverse=True)
         where_num = self._get_where_num(model_output)
