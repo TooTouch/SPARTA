@@ -3,3 +3,7 @@ cx_Oracle
 records==0.5.2
 babel
 kaggle
+matplotlib 
+transformers==4.5.1
+ujson
+openpyxl
