@@ -701,6 +701,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     args = construct_hyper_param(parser)
 
+    # random seed
     torch_seed(args.seed)
 
     # gpu
@@ -715,7 +716,7 @@ if __name__ == '__main__':
         os.makedirs(args.savedir)
 
     ## 3. Load data
-    if args.do_test:
+    if args.do_test and not args.do_dev:
         test_data, test_table, test_loader = get_demo(args.datadir, args)
     else:
         train_data, train_table, dev_data, dev_table, test_data, test_table, train_loader, dev_loader, test_loader = get_data(args.datadir, args)
