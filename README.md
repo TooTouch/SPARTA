@@ -99,7 +99,7 @@ We use pretrained multilingual BERT as encoder.
 
 **Seq2Seq**
 
-1. BRIDGE [ [paper](https://arxiv.org/pdf/2012.12627.pdf) | [github](https://github.com/salesforce/TabularSemanticParsing) ]
+1. BRIDGE(TabularSemanticParsing)[ [paper](https://arxiv.org/pdf/2012.12627.pdf) | [github](https://github.com/salesforce/TabularSemanticParsing) ]
 
 
 # Evaluation
