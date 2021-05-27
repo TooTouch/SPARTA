@@ -2,7 +2,7 @@
 # wikisql raw
 # ====================
 python3 train.py --do_train --seed 1 --bS 8 --tepoch 10 \
-                 --datadir ./data/sqlova_data --logdir ./logs/sqlova_data \
+                 --datadir ../data/data --logdir ./logs/sqlova_data \
                  --accumulate_gradients 2 --bert_name bert-base-uncased \
                  --fine_tune --lr 0.001 --lr_bert 0.00001 --max_seq_length 222 --EG \
                  --gpu 1
@@ -79,13 +79,3 @@ python3 train.py --do_train --seed 223 --bS 8 --tepoch 20 \
                  --fine_tune --lr 0.001 --lr_bert 0.00001 --max_seq_length 222 --EG \
                  --gpu 1 --trained
 
-# ====================
-# ko_token roberta XLM
-# XLM RoBERTa 는 segment_ids 사용안함. 이유는 모르겠음
-# ====================
-
-# learning rate and batch size 
-python3 train.py --do_train --seed 1 --bS 1 --tepoch 10 \
-                 --datadir ./data/ko_token --logdir ./logs/ko_token_roberta \
-                 --accumulate_gradients 16 --bert_name xlm-roberta-base \
-                 --fine_tune --lr 0.001 --lr_bert 0.00001 --max_seq_length 222 --EG
