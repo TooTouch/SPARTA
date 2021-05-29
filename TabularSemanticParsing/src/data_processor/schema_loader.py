@@ -205,6 +205,7 @@ def load_schema_graphs_wikisql(data_dir, splits=['train', 'dev', 'test']):
 
     for split in splits:
         in_jsonl = os.path.join(data_dir, '{}.tables.jsonl'.format(split))
+        print(in_jsonl)
         db_count = 0
         with open(in_jsonl) as f:
             for line in f:

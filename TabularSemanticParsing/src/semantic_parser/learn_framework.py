@@ -172,6 +172,7 @@ class EncoderDecoderLFramework(LFramework):
                     example = mini_batch[i]
                     db_name = example.db_name
                     schema = self.schema_graphs[db_name]
+
                     table_po, field_po = None, None
                     if self.args.use_oracle_tables:
                         # TODO: The implementation below is incorrect.
@@ -230,6 +231,7 @@ class EncoderDecoderLFramework(LFramework):
                                     assert(engine is not None)
                                     try:
                                         pred_query = Query.from_dict(pred_sql, ordered=False)
+                                        qg = Query.from_dict(eg['sql'], ordered=False)
                                         pred_ex = engine.execute_query(example.db_name, pred_query, lower=True)
                                         if not pred_ex:
                                             pred_sql = None
@@ -268,7 +270,7 @@ class EncoderDecoderLFramework(LFramework):
                         is_error_case = self.print_predictions(batch_start_id + i, example, hardness, predictions, schema)
                         if is_error_case:
                             num_error_cases += 1
-                            print('Error Case {}'.format(num_error_cases))
+                            # print('Error Case {}'.format(num_error_cases))
                             print()
                             # if num_error_cases == 50:
                             #     import sys
@@ -456,7 +458,12 @@ class EncoderDecoderLFramework(LFramework):
                 if self.training else None
             primary_key_ids = ops.pad_batch(primary_key_ids, self.mdl.in_vocab.pad_id)
             foreign_key_ids = ops.pad_batch(foreign_key_ids, self.mdl.in_vocab.pad_id)
+            # print(field_type_ids)
+            for fields_index in range(len(field_type_ids)):
+                field_type_ids[fields_index] = [i if i != None else 0 for i in field_type_ids[fields_index]]
+                
             field_type_ids = ops.pad_batch(field_type_ids, self.mdl.in_vocab.pad_id)
+            
             table_masks = ops.pad_batch(table_masks, pad_id=0)
             transformer_output_value_masks = ops.pad_batch(transformer_output_value_masks, pad_id=0, dtype=torch.uint8) \
                 if self.args.read_picklist else (None, None)
@@ -564,15 +571,17 @@ class EncoderDecoderLFramework(LFramework):
             inspect_error_cases = True
 
         if not output_strs or output_strs[0].startswith('[WRONG]'): # and hardness == 'medium':
-            example.pretty_print(example_id=example_id,
-                                 schema=schema,
-                                 de_vectorize_ptr=vec.de_vectorize_ptr,
-                                 de_vectorize_field_ptr=vec.de_vectorize_field_ptr,
-                                 rev_vocab=self.out_vocab,
-                                 post_process=self.output_post_process,
-                                 use_table_aware_te=(self.model_id in [BRIDGE]))
+            pass
+            # example.pretty_print(example_id=example_id,
+            #                      schema=schema,
+            #                      de_vectorize_ptr=vec.de_vectorize_ptr,
+            #                      de_vectorize_field_ptr=vec.de_vectorize_field_ptr,
+            #                      rev_vocab=self.out_vocab,
+            #                      post_process=self.output_post_process,
+            #                      use_table_aware_te=(self.model_id in [BRIDGE]))
             for output_str in output_strs:
-                print(output_str)
+                pass
+                # print(f'output string: {output_str}')
 
         return inspect_error_cases
 
