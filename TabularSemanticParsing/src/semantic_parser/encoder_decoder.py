@@ -59,14 +59,13 @@ class EncoderDecoder(nn.Module):
         else:
             self.encoder_embeddings = Embedding(
                 self.input_vocab_size, self.encoder_input_dim, dropout=self.emb_dropout, requires_grad=True)
-
+        print(f'share_vocab is {self.share_vocab}')
         if self.share_vocab:
             assert(not self.pretrained_transformer)
             self.decoder_embeddings = self.encoder_embeddings
         else:
             self.decoder_embeddings = Embedding(
                 self.output_vocab_size, self.decoder_input_dim, dropout=self.emb_dropout, requires_grad=True)
-
     def get_segment_and_position_ids(self, encoder_input_ids):
         batch_size, input_size = encoder_input_ids.size()
         position_ids = ops.arange_cuda(input_size).unsqueeze(0).expand_as(encoder_input_ids)
