@@ -25,7 +25,7 @@ from torch.utils.tensorboard import SummaryWriter
 # BERT
 # import bert.tokenization as tokenization
 # from bert.modeling import BertConfig, BertModel
-from transformers import BertConfig, BertModel, BertTokenizer, XLMRobertaConfig, XLMRobertaTokenizerFast, XLMRobertaModel
+from transformers import BertConfig, BertModel, BertTokenizer
 from sqlova.model.nl2sql.wikisql_models import *
 
 from tqdm import tqdm
@@ -67,7 +67,7 @@ def construct_hyper_param(parser, notebook=False):
     parser.add_argument("--bert_name", 
                         type=str, 
                         default='bert-base-uncased', 
-                        choices=['bert-base-multilingual-cased','bert-base-uncased','xlm-roberta-base'], 
+                        choices=['bert-base-multilingual-cased','bert-base-uncased'], 
                         help='bert pretrained model name')
     parser.add_argument("--max_seq_length",
                         default=222, type=int,  # Set based on maximum length of input tokens.
@@ -115,14 +115,9 @@ def construct_hyper_param(parser, notebook=False):
 def get_bert(name, device):
     
     # huggingface 
-    if name == 'xlm-roberta-base':
-        bert_config = XLMRobertaConfig.from_pretrained(name)
-        model_bert = XLMRobertaModel.from_pretrained(name)
-        tokenizer = XLMRobertaTokenizerFast.from_pretrained(name)
-    else:
-        bert_config = BertConfig.from_pretrained(name)
-        model_bert = BertModel.from_pretrained(name)
-        tokenizer = BertTokenizer.from_pretrained(name)
+    bert_config = BertConfig.from_pretrained(name)
+    model_bert = BertModel.from_pretrained(name)
+    tokenizer = BertTokenizer.from_pretrained(name)
     
     model_bert.config.output_hidden_states = True # return all hidden states
     model_bert.to(device)
@@ -136,10 +131,6 @@ def get_models(args, trained=False, path_model_bert=None, path_model=None, devic
     agg_ops = ['', 'MAX', 'MIN', 'COUNT', 'SUM', 'AVG']
     cond_ops = ['=', '>', '<', 'OP']  # do not know why 'OP' required. Hence,
 
-    print(f'BERT: pretrained {args.bert_name}')
-    print(f"BERT: learning rate: {args.lr_bert}")
-    print(f"BERT: Fine-tune BERT: {args.fine_tune}")
-
     # Get BERT
     model_bert, tokenizer, bert_config = get_bert(name=args.bert_name, device=device)
     args.iS = bert_config.hidden_size * args.num_target_layers  # Seq-to-SQL input vector dimenstion
@@ -148,11 +139,6 @@ def get_models(args, trained=False, path_model_bert=None, path_model=None, devic
 
     n_cond_ops = len(cond_ops)
     n_agg_ops = len(agg_ops)
-    print(f"Seq-to-SQL: the number of final BERT layers to be used: {args.num_target_layers}")
-    print(f"Seq-to-SQL: the size of hidden dimension = {args.hS}")
-    print(f"Seq-to-SQL: LSTM encoding layer size = {args.lS}")
-    print(f"Seq-to-SQL: dropout rate = {args.dr}")
-    print(f"Seq-to-SQL: learning rate = {args.lr}")
     model = Seq2SQL_v1(args.iS, args.hS, args.lS, args.dr, n_cond_ops, n_agg_ops, device=device)
     model = model.to(device)
 
