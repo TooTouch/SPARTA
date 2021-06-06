@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
-data_dir="data/ko"
-db_dir="data/ko"
+data_dir="data/ko_token"
+db_dir="data/ko_token"
 dataset_name="wikisql"
 model="bridge"
 question_split="True"
@@ -77,7 +77,7 @@ ff_hidden_dropout_rate=0.0
 
 grad_norm=0.3
 decoding_algorithm="beam-search"
-beam_size=64
+beam_size=8
 bs_alpha=1.0
 
 data_parallel="False"

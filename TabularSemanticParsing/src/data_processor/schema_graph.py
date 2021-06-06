@@ -181,9 +181,13 @@ class SchemaGraphs(object):
 
     def index_schema_graph(self, schema_graph):
         db_id = len(self.db_index)
-        assert(schema_graph.name not in self.db_index)
-        self.db_index[schema_graph.name] = db_id
-        self.db_rev_index[db_id] = schema_graph
+        
+        if schema_graph.name not in self.db_index:
+            self.db_index[schema_graph.name] = db_id
+            self.db_rev_index[db_id] = schema_graph
+        # assert(schema_graph.name not in self.db_index)
+        # self.db_index[schema_graph.name] = db_id
+        # self.db_rev_index[db_id] = schema_graph
 
     def lexicalize_graphs(self, tokenize=None, normalized=False):
         for db_name in self.db_index:

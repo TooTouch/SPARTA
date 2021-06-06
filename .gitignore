@@ -148,6 +148,10 @@ old/
 # notebook/
 kaggle.json
 
+# BRIDGE
+TabularSemanticParsing/data
+TabularSemanticParsing/wandb
+
 # model
 *.pt 
 *.pth

@@ -47,7 +47,6 @@ class Vocabulary(object):
         self.size = 0
 
         fti = func_token_index if func_token_index is not None else functional_token_index
-
         # decoder specific
         self.start_token = None if tu else fti['start_token']
         self.eos_token = None if tu else fti['eos_token']
@@ -80,6 +79,7 @@ class Vocabulary(object):
             return True
 
     def to_idx(self, v):
+        # v = v.lower()
         if not v in self.ind_:
             return self.unk_id
         v_ent = self.ind_[v]
@@ -136,8 +136,11 @@ class Vocabulary(object):
     def unk_id(self):
         if self.unk_token is None:
             return None
-        v_ent = self.ind_[self.unk_token]
-        return v_ent.idx
+        if self.unk_token in self.ind_:
+            v_ent = self.ind_[self.unk_token]
+            return v_ent.idx
+        else:
+            pass
 
     @property
     def pad_id(self):

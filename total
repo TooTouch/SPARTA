@@ -1,0 +1,6 @@
+# SPARTA Model (Ensemble Model with SQLova, HydraNet, Bridge)
+
+./experiment-bridge.sh configs/bridge/wikisql-bridge-bert-large.sh --process_data 0 --data_dir data/demo_data
+
+./experiment-bridge.sh configs/bridge/wikisql-bridge-bert-large.sh --inference 0 --test --data_dir data/demo_data --db_dir data/ko_token_not_h --beam_size 8
+
