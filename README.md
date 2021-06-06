@@ -123,6 +123,16 @@ HydraNet | Subtask    | 40.4 | 40.7
 Bridge   | Generation | 54.6 | 62.1
 
 
+# Download Trained Models
+
+Method | SQlova | Bridge
+---|---|---
+Where+Select | [Download](https://drive.google.com/file/d/1f1E53QdPAboF3cWdbET4gjAX5Y5Li_Tv/view?usp=sharing) | -
+Where | [Download](https://drive.google.com/file/d/1fgmhq50YbHHapKWOityuoO_zXVOvB3Sh/view?usp=sharing) | -
+Table+Header | [Download](https://drive.google.com/file/d/1a8vF5mgV1lYDDbFlu7riu0tySFjF08e3/view?usp=sharing) | -
+Table | [Download](https://drive.google.com/file/d/1GBQeQ_DuG1YAnaNSkk6u26CawnfqEikP/view?usp=sharing) | -
+
+
 # Presentation 
 
 **Proposal**
