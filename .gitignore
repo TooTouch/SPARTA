@@ -145,7 +145,7 @@ SQLova/corenlp
 logs/
 results/
 old/
-notebook/
+# notebook/
 kaggle.json
 
 # model
