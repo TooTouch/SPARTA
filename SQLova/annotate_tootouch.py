@@ -13,37 +13,6 @@ from wikisql.lib.query import Query
 from konlpy.tag import Mecab
 
 
-def annotate_example(example, table):
-    ann = {'table_id': example['table_id']}
-    ann['question'] = annotate(example['question'])
-    ann['table'] = {
-        'header': [annotate(h) for h in table['header']],
-    }
-    ann['query'] = sql = copy.deepcopy(example['sql'])
-    for c in ann['query']['conds']:
-        c[-1] = annotate(str(c[-1]))
-
-    q1 = 'SYMSELECT SYMAGG {} SYMCOL {}'.format(Query.agg_ops[sql['agg']], table['header'][sql['sel']])
-    q2 = ['SYMCOL {} SYMOP {} SYMCOND {}'.format(table['header'][col], Query.cond_ops[op], detokenize(cond)) for col, op, cond in sql['conds']]
-    if q2:
-        q2 = 'SYMWHERE ' + ' SYMAND '.join(q2) + ' SYMEND'
-    else:
-        q2 = 'SYMEND'
-    inp = 'SYMSYMS {syms} SYMAGGOPS {aggops} SYMCONDOPS {condops} SYMTABLE {table} SYMQUESTION {question} SYMEND'.format(
-        syms=' '.join(['SYM' + s for s in Query.syms]),
-        table=' '.join(['SYMCOL ' + s for s in table['header']]),
-        question=example['question'],
-        aggops=' '.join([s for s in Query.agg_ops]),
-        condops=' '.join([s for s in Query.cond_ops]),
-    )
-    ann['seq_input'] = annotate(inp)
-    out = '{q1} {q2}'.format(q1=q1, q2=q2) if q2 else q1
-    ann['seq_output'] = annotate(out)
-    ann['where_output'] = annotate(q2)
-    assert 'symend' in ann['seq_output']['words']
-    assert 'symend' in ann['where_output']['words']
-    return ann
-
 def find_sub_list(sl, l):
     # from stack overflow.
     results = []
@@ -167,7 +136,7 @@ if __name__ == '__main__':
             for line in tqdm(fs, total=count_lines(fsplit)):
                 cnt += 1
                 d = json.loads(line)
-                # a = annotate_example(d, tables[d['table_id']])
+                
                 a = annotate_example_tootouch(d, tables[d['table_id']])
                 fo.write(json.dumps(a, ensure_ascii=False) + '\n')
                 n_written += 1
