@@ -57,65 +57,33 @@ def create_table(data, table_id):
     table['header'] = header
     table['types'] = types_lst
     table['rows'] = data.values.tolist()
+    table['name'] = table_id.replace('1-','table_').replace('-','_')
 
     return table
 
-
-def preprocessing(data, table_id):
-    # data preprocessing
-    if table_id == 'CustomerAcqusition':
-        data['Limit'] = data['Limit'].astype(int)
-        data = data.dropna()
-        
-    elif table_id == 'CustomerRepayment':
-        del data['Unnamed: 4']
-        data = data.rename(columns={'SL No:':'SL No'})
-        data.iloc[0,0] = 1
-        data = data.dropna()
-        data['SL No'] = data['SL No'].astype(int)
-
-    elif table_id == 'CustomerSpend':
-        data = data.rename(columns={'SL No:':'SL No'})
-        data = data.dropna()
-
-    elif table_id == 'ApplicationRecord':
-        data['CNT_FAM_MEMBERS'] = data['CNT_FAM_MEMBERS'].astype(int)
-        data['AMT_INCOME_TOTAL'] = data['AMT_INCOME_TOTAL'].astype(int)
-        data = data.dropna()
-
-    elif table_id == 'PersonalTransaction':
-        data['Date'] = pd.to_datetime(data.Date).astype(str)
-    
-    else:
-        data = data.dropna()
-
-    return data.head(100) # select 100 samples from top
 
 if __name__=='__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--datadir',type=str,help='data directory')
     args = parser.parse_args()
 
-    table_ids = [table_id for table_id in os.listdir(args.datadir) if '.csv' in table_id]
     conn = sqlite3.connect(f"./{args.datadir}/test.db")
     
-    table_lst = []
-    for table_id in table_ids:
-        # read data
-        data = pd.read_csv(f'{args.datadir}/{table_id}')
-        # define table_id
-        table_id = table_id.replace('.csv','')
+    # read data
+    data = pd.read_csv(f'{args.datadir}/PYMR.csv')
+    # define table_id
+    table_id = 'PYMR'
 
-        # preprocessing data
-        data = preprocessing(data, table_id)
-        
-        # create database
-        create_db(data, table_id, conn)
-        print(f'CREATE TABLE {table_id} / TABLE SIZE: ROW-{data.shape[0]} COL-{data.shape[1]}')
+    # preprocessing data
+    data['Year'] = data['Year'].astype(int)
+    
+    # create database
+    create_db(data, table_id, conn)
+    print(f'CREATE TABLE {table_id} / TABLE SIZE: ROW-{data.shape[0]} COL-{data.shape[1]}')
 
-        # create table
-        table = create_table(data, table_id)
-        table_lst.append(table)
+    # create table
+    table = create_table(data, table_id)
+    table_lst = [table]
 
     # end database connection
     conn.close()
