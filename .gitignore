@@ -142,6 +142,7 @@ wandb/
 sqlova_custom
 SQLova/corenlp
 !SQLova/sqlova/model/  
+!SQLova/wikisql/lib
 logs/
 results/
 old/
@@ -151,6 +152,7 @@ kaggle.json
 # BRIDGE
 TabularSemanticParsing/data
 TabularSemanticParsing/wandb
+!TabularSemanticParsing/src/eval/wikisql/lib
 
 # model
 *.pt 

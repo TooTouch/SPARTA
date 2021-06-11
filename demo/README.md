@@ -45,10 +45,10 @@ pip install kaggle
 2. https://www.kaggle.com 에 접속하여 로그인
 3. 우측 상단 사용자의 아이콘 클릭 후 Account 접속
 4. `Create New API Token`을 눌러서 `kaggle.json` 다운로드
-5. 아래 명령어를 통해 권한 변경
+5. 다운도르 폴더 위치에 아래 명령어를 통해 권한 변경
 
 ```bash
-chmod 600 ~/.kaggle/kaggle.json
+chmod 600 kaggle.json
 ```
 
 6. 아래 명령어를 통해 환경변수 설정
