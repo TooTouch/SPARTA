@@ -151,7 +151,7 @@ class EncoderDecoderLFramework(LFramework):
             text_ptr_weights_vis, pointer_vis = [], []
 
         num_error_cases = 0
-        for batch_start_id in tqdm(range(0, len(examples), self.dev_batch_size)):
+        for batch_start_id in tqdm(range(0, len(examples), self.dev_batch_size), leave=False):
             mini_batch = examples[batch_start_id:batch_start_id + self.dev_batch_size]
             formatted_batch = self.format_batch(mini_batch)
             outputs = self.forward(formatted_batch, model_ensemble)
