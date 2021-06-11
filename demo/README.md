@@ -67,5 +67,5 @@ export KAGGLE_KEY=xxxxxxxxxxxxxx
 3. 검증을 위해 작성한 질문과 정답 SQL이 들어있는 `kaggle_demo_question.jsonl`을 `test.jsonl`로 변경하여 생성된 data 폴더에 저장
 
 ```bash
-bash kaggle_demo/run.sh
+bash run.sh
 ```
