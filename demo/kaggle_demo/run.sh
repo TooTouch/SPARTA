@@ -32,8 +32,10 @@ kaggle datasets download -d janiobachmann/bank-marketing-dataset -f bank.csv
 
 datanames=("CardBase.csv" "CustomerBase.csv" "Customer%20Acqusition.csv" "Repayment.csv" "spend.csv" \
 	   "TransactionBase.csv" "application_record.csv" "Budget.csv" "personal_transactions.csv" "bank.csv")
-table_ids=("1-100000-1" "1-100000-2" "1-100000-3" "1-100000-4" "1-100000-5" \
-	   "1-100000-6" "1-100000-7" "1-100000-8" "1-100000-9" "1-100000-10")
+# table_ids=("1-100000-1" "1-100000-2" "1-100000-3" "1-100000-4" "1-100000-5" \
+# 	   "1-100000-6" "1-100000-7" "1-100000-8" "1-100000-9" "1-100000-10")
+table_ids=("CardBase" "CustomerBase" "CustomerAcqusition" "CustomerRepayment" "CustomerSpend" \
+           "TransactionBase" "ApplicationRecord" "Budget" "PersonalTransaction" "Bank")
 
 total_len=${#table_ids[@]}
 

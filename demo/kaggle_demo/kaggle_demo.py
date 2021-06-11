@@ -57,39 +57,39 @@ def create_table(data, table_id):
     table['header'] = header
     table['types'] = types_lst
     table['rows'] = data.values.tolist()
-    table['name'] = table_id.replace('1-','table_').replace('-','_')
 
     return table
 
+
 def preprocessing(data, table_id):
     # data preprocessing
-    if table_id == '1-100000-3':
+    if table_id == 'CustomerAcqusition':
         data['Limit'] = data['Limit'].astype(int)
         data = data.dropna()
         
-    elif table_id == '1-100000-4':
+    elif table_id == 'CustomerRepayment':
         del data['Unnamed: 4']
         data = data.rename(columns={'SL No:':'SL No'})
         data.iloc[0,0] = 1
         data = data.dropna()
         data['SL No'] = data['SL No'].astype(int)
 
-    elif table_id == '1-100000-5':
+    elif table_id == 'CustomerSpend':
         data = data.rename(columns={'SL No:':'SL No'})
         data = data.dropna()
 
-    elif table_id == '1-100000-7':
+    elif table_id == 'ApplicationRecord':
         data['CNT_FAM_MEMBERS'] = data['CNT_FAM_MEMBERS'].astype(int)
         data['AMT_INCOME_TOTAL'] = data['AMT_INCOME_TOTAL'].astype(int)
         data = data.dropna()
 
-    elif table_id == '1-100000-9':
+    elif table_id == 'PersonalTransaction':
         data['Date'] = pd.to_datetime(data.Date).astype(str)
     
     else:
         data = data.dropna()
 
-    return data
+    return data.head(100) # select 100 samples from top
 
 if __name__=='__main__':
     parser = argparse.ArgumentParser()
