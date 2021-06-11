@@ -150,6 +150,7 @@ old/
 kaggle.json
 
 # BRIDGE
+!TabularSemanticParsing/data.zip
 TabularSemanticParsing/data
 TabularSemanticParsing/wandb
 !TabularSemanticParsing/src/eval/wikisql/lib
