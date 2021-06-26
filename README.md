@@ -21,6 +21,13 @@ This is a term project in `Unstructured Text Analysis` class. We implement the d
 
 Check about Demo in [here](https://github.com/TooTouch/SPARTA/tree/main/demo).
 
+# Video
+
+**Text2SQL Result Video**
+
+[![](https://user-images.githubusercontent.com/37654013/123519659-aa6d2080-d6e7-11eb-867c-05f3e47756f5.png)](https://youtu.be/qzeufyuyrEE)
+
+
 # Dataset 
 - [WikiSQL](https://github.com/salesforce/WikiSQL)
 
@@ -144,6 +151,9 @@ Table | [Download](https://drive.google.com/file/d/1GBQeQ_DuG1YAnaNSkk6u26Cawnfq
 
 [![](https://user-images.githubusercontent.com/37654013/119706604-2a0f9180-be95-11eb-94ad-7d118e05ebcd.png)](https://www.youtube.com/watch?v=vMJcWZ6Sn5s)
 
+**Final**
+
+[![](https://user-images.githubusercontent.com/37654013/123519632-87db0780-d6e7-11eb-9aa2-4d3b009f582b.png)](https://www.youtube.com/watch?v=3upT_dFziC8)
 
 # Reference
 
